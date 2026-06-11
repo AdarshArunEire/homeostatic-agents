@@ -19,39 +19,38 @@ The model is a DQN controller that can effectively maintain homeostatic behavior
 The model learns to keep its internal state near the ideal comfort region instead of drifting into dehydration, starvation, or unstable oscillation.
 
 ### Best results
-
 <p>
-  <img src="results/best_figures/phase_trajectory_wu500_buf5k_g95_e03_u50.gif" width="700">
+  <img src="Results/best_figures/phase_trajectory_wu500_buf5k_g95_e03_u50.gif" width="700">
   <br>
   <sub><em>Final greedy-policy evaluation phase density. The learned policy keeps hydration and satiation clustered near the ideal point.</em></sub>
 </p>
 <br>
 
 <p>
-  <img src="results/best_figures/comfort_hill_3d_dqn_vs_heuristic_wu500_buf5k_g95_e03_u50.gif" width="700">
+  <img src="Results/best_figures/comfort_hill_3d_dqn_vs_heuristic_wu500_buf5k_g95_e03_u50.gif" width="700">
   <br>
   <sub><em>Gaussian comfort surface with evaluation trajectory. Comfort peaks around the target hydration/satiation region.</em></sub>
 </p>
 <br>
 
 <p>
-  <img src="results/best_figures/rolling_comfort_DQN_vs_Heuristic.png" width="700">
+  <img src="Results/best_figures/rolling_comfort_DQN_vs_Heuristic.png" width="700">
   <br>
-  <sub><em>Rolling comfort across seeded runs. The highlighted run shows the representative learning behavior.</em></sub>
+  <sub><em>Rolling comfort across seeded runs. The highlighted run shows the representative learning behaviour.</em></sub>
 </p>
 <br>
 
 <p>
-  <img src="results/best_figures/death_rate_DQN_vs_Heuristic.png" width="700">
+  <img src="Results/best_figures/death_rate_DQN_vs_Heuristic.png" width="700">
   <br>
-<sub><em>Death-gap distribution during evaluation. Short-gap clustering reveals a post-reset death-spiral failure mode in the learned DQN policy.</em></sub>
+  <sub><em>Death-gap distribution during evaluation. Short-gap clustering reveals a post-reset death-spiral failure mode in the learned DQN policy.</em></sub>
 </p>
 <br>
 
 <p>
-  <img src="results/best_figures/eval_hs_wu500_buf5k_g95_e03_u50.png" width="700">
+  <img src="Results/best_figures/eval_hs_wu500_buf5k_g95_e03_u50.png" width="700">
   <br>
-<sub><em>Evaluation window with exploration disabled, showing that the final DQN policy learns noisy but functional control of hydration and satiation.</em></sub>
+  <sub><em>Evaluation window with exploration disabled, showing that the final DQN policy learns noisy but functional control of hydration and satiation.</em></sub>
 </p>
 <br>
 
