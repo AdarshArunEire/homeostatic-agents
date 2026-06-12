@@ -95,12 +95,6 @@ Representative result:
 - mean comfort: $\approx 0.584$
 - evaluation deaths: $16$
 
-<p>
-  <img src="results/best_figures/hex_occupancy_len500k_seed4.png" width="700">
-  <br>
-  <sub><em>Occupancy density across the hex world at the start of training, end of training, and during greedy evaluation. Water is outlined in blue and food in orange. By evaluation, the agent concentrates in the water-food corridor and mostly abandons the lower region of the map.</em></sub>
-</p>
-<br>
 
 The occupancy plot is the clearest spatial result.
 
@@ -121,12 +115,10 @@ The policy does not hold the agent exactly at $x^\star$. Instead, it forms a noi
 
 The density leans toward higher hydration. This is useful rather than mysterious. Water and food are not symmetric in the transition dynamics, so the learned route favours frequent water correction and less frequent food correction.
 
-<p>
-  <img src="results/best_figures/h_s_len500k_seed4.png" width="700">
-  <br>
-  <sub><em>Hydration and satiation during greedy evaluation. Both variables stay near the ideal line with bounded noise, although sharp dips still occur.</em></sub>
-</p>
-<br>
+![Hydration and satiation trace](results/best_figures/h_s_len500k_seed4.png)
+
+*Hydration and satiation during greedy evaluation. Both variables stay near the ideal line with bounded noise, although sharp dips still occur.*
+
 
 The evaluation trace shows noisy but functional regulation.
 
@@ -134,23 +126,19 @@ Hydration and satiation repeatedly drift away from the target and are then corre
 
 The remaining sharp dips are also useful: they show that the task is not solved yet, and that the next prototype should focus on robustness rather than adding social complexity too early.
 
-<p>
-  <img src="results/best_figures/rolling_comfort_death_len500k_seed4.png" width="700">
-  <br>
-  <sub><em>Rolling comfort and rolling death rate during training. The dotted line marks the final greedy evaluation window. Comfort climbs out of the early failure regime, while death rate falls as the learned policy stabilises.</em></sub>
-</p>
-<br>
+![Rolling comfort and death rate](results/best_figures/rolling_comfort_death_len500k_seed4.png)
+
+*Rolling comfort and rolling death rate during training. The dotted line marks the final greedy evaluation window. Comfort climbs out of the early failure regime, while death rate falls as the learned policy stabilises.*
+
 
 The training curves show the transition from unstable exploration to learned regulation.
 
 Early training has poor comfort and frequent deaths. Later training is still noisy, but the policy reaches a much better operating region. In the final greedy window, exploration is disabled, so the learned policy is tested directly.
 
-<p>
-  <img src="results/best_figures/ticks_between_deaths_len500k_seed4.png" width="700">
-  <br>
-  <sub><em>Ticks survived between deaths during training and evaluation. The learned policy survives much longer than early training behaviour, but clustered short gaps still reveal post-reset failure cycles.</em></sub>
-</p>
-<br>
+![Ticks survived between deaths](results/best_figures/ticks_between_deaths_len500k_seed4.png)
+
+*Ticks survived between deaths during training and evaluation. The learned policy survives much longer than early training behaviour, but clustered short gaps still reveal post-reset failure cycles.*
+
 
 The death-gap distribution shows the main remaining failure mode.
 
