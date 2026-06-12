@@ -23,7 +23,7 @@ The current world is a spatial homeostasis problem: a hex grid where survival de
 - an internal state $x = (h, s)$, where $h$ is hydration and $s$ is satiation
 - a setpoint $x^\star = (1, 1)$, where comfort is highest
 - internal decay each tick, driven by the environment
-- death when either component of $x$ reaches $0$
+- death when $\min(h, s) \le 0$
 - partial observability: the agent sees a local neighbourhood and its own internal state, not the whole map
 - delayed effects: drinking and eating do not behave like instant abstract buttons; action effects pass through the environment dynamics before fully affecting state
 - action masking: for the observed/input state $z$, only a subset $\mathcal{A}(z) \subseteq \mathcal{A}$ is valid
@@ -44,31 +44,19 @@ The current agent is a DQN in PyTorch.
 
 It approximates the action-value function:
 
-
-```math
-Q(z, a)
-```
-
+$$Q(z, a)$$
 
 where $z$ is the input state observed by the controller.
 
 At evaluation time, the agent selects the highest-valued valid action:
 
-
-```math
-\arg\max_{a \in \mathcal{A}(z)} Q(z, a)
-```
-
+$$\arg\max_{a \in \mathcal{A}(z)} Q(z, a)$$
 
 The training target is the masked Bellman target:
 
+$$y = r + \gamma \max_{a' \in \mathcal{A}(z')} Q_{\theta^-}(z', a')$$
 
-```math
-y = r + \gamma \max_{a' \in \mathcal{A}(z')} Q_{\theta^-}(z', a')
-```
-
-
-where $\theta^-$ is the target network. Terminal states are masked out of the bootstrap.
+where $\theta^-$ is the target network. Terminal states are masked out of the bootstrap, so $y = r$ when $z'$ is terminal.
 
 The training setup includes:
 
@@ -76,7 +64,7 @@ The training setup includes:
 - replay warmup
 - target network updates
 - $\varepsilon$-greedy exploration during training
-- final greedy evaluation with exploration disabled
+- final greedy evaluation with exploration disabled ($\varepsilon = 0$)
 - action masking in both training and evaluation
 
 The learned policy commutes between water and food, drinking and eating in turn, instead of starving, dehydrating, or wandering into unused regions of the map.
@@ -100,16 +88,12 @@ Config:
 - replay buffer: $5000$
 - warmup: $500$
 - target update interval: $50$
-- training length: $500,000$ ticks
+- training length: $500{,}000$ ticks
 
 Representative result:
 
 - mean comfort: $\approx 0.584$
 - evaluation deaths: $16$
-
-![Hex-world occupancy density](results/best_figures/hex_occupancy_len500k_seed4.png)
-
-*Occupancy density across the hex world at the start of training, end of training, and during greedy evaluation. Water is outlined in blue and food in orange. By evaluation, the agent concentrates in the water-food corridor and mostly abandons the lower region of the map.*
 
 
 The occupancy plot is the clearest spatial result.
@@ -118,10 +102,12 @@ At the start of training, the agent visits a broad region of the map. By the end
 
 This shows that the policy is not only learning *when* to drink and eat. It is learning *where* the corrective actions are available.
 
-![Hydration-satiation phase density](results/best_figures/phase_density_len500k_seed4.png)
-
-*Evaluation phase density over the hydration-satiation plane. The learned policy spends most of its time near the ideal state $x^\star = (1, 1)$, with a noisy but clear attractor around the comfort region.*
-
+<p>
+  <img src="results/best_figures/phase_density_len500k_seed4.png" width="700">
+  <br>
+  <sub><em>Evaluation phase density over the hydration-satiation plane. The learned policy spends most of its time near the ideal state (h, s) = (1, 1), with a noisy but clear attractor around the comfort region.</em></sub>
+</p>
+<br>
 
 The phase-density plot shows the internal-state behaviour during evaluation.
 
@@ -238,6 +224,6 @@ The goal for the next version is:
 
 Only after that should the project move into multi-agent control.
 
-The longer-term goal is parameter-shared multi-agent homeostasis: many agents using the same policy weights $\theta$, while each agent maintains its own internal state $x_i$, position, observation history, and transition history.
+The longer-term goal is parameter-shared multi-agent homeostasis: many agents using the same policy weights $\theta$, while each agent maintains its own internal state $x_i$, position $p_i$, observation history, and transition history.
 
 That stage introduces resource competition, interference, and the first conditions under which coordination or failure to coordinate can emerge.
