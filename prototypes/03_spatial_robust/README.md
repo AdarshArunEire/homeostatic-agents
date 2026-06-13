@@ -9,9 +9,10 @@ The world grew from radius 3 to radius 5, with water at (−5, 0) and food at (0
 The old comfort surface was isotropic around the ideal point:
 
 $$
-d^2 = (h - h^{*})^2 + (s - s^{*})^2,
-\qquad
-C(h, s) = 2\exp(-k d^2) - 1
+d^{2} = (h - h_{\mathrm{ideal}})^{2} + (s - s_{\mathrm{ideal}})^{2}
+$$
+$$
+C(h, s) = 2\exp(-k d^{2}) - 1
 $$
 
 Direction of error doesn't matter: a unit of useful buffer costs exactly as much as a unit of dangerous deficit. That was fine when `eat` and `drink` were one or two moves away and every deviation really was a mistake. On the larger map it punishes the thing the agent must do to survive the journey.
