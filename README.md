@@ -1,245 +1,179 @@
 # Homeostatic Agents
 
-A reinforcement-learning project about agents learning to regulate internal state — holding a small set of internal variables near their setpoints while the world pushes them away.
+Reinforcement-learning agents that regulate internal state under spatial constraints.
 
-Every prototype is the same control problem under a stricter environment. An agent observes part of a world, picks from a discrete action set, and is rewarded for keeping its internal state $x$ near an ideal $x^\star$; survival is staying in that region long enough not to die.
+**Current experiment:** [`03b_nstep_robust`](prototypes/03b_nstep_robust) · **Hypothesis ledger:** [`BUILDNOTES.md`](BUILDNOTES.md)
 
-Successive prototypes add delayed dynamics, spatial structure, partial observability, action constraints, larger maps, obstacles, resource scarcity, and eventually parameter-shared multi-agent control. The question each time is simple:
+The core control problem is:
 
-> which added constraint breaks the controller?
+$$
+\text{keep } x_t \text{ near } x^\star \text{ while the environment pushes } x_t \text{ away.}
+$$
 
-The current world is a hex grid. Water and food sit at fixed locations, hydration and satiation decay over time, and the agent only sees its local surroundings. Regulation is no longer free: the agent has to physically move between resources to keep $x$ near $x^\star$, so staying alive becomes a spatial problem as much as a control one.
+Each prototype keeps the same underlying problem but makes the environment less forgiving. Early versions were abstract homeostatic control tasks. Later versions move the corrective actions into physical space: water and food are *no longer buttons*, but locations. The agent must learn when to act, where the corrective action is available, and how to survive the delay between needing a resource and reaching it.
 
-The current agent is a PyTorch DQN with local observations and action masking. It learns a movement-and-consumption policy that keeps it alive across long episodes, choosing only from the actions the environment marks valid at each step.
+The current world is a radius-5 hex grid. Water sits at `(-5, 0)`, food at `(0, 5)`, hydration and satiation decay every tick, and the agent observes only local state. Regulation is therefore both a control problem and a spatial credit-assignment problem.
 
-## Current state
+The current agent is a PyTorch DQN variant with local observations, action masking, experience replay, target networks, masked Bellman targets, 10-step returns, NoisyNet exploration, count-based novelty, and greedy evaluation after training.
 
-The current world is a spatial homeostasis problem: a hex grid where survival depends on both *where* the agent is and *what* its internal state is.
+## Main question
 
-### Environment
+A controller that survives one fixed map may have learned a route, *not a rule*.
 
-- a hex world with radius $r = 3$
-- fixed water and food cells: $\text{water} = (-3, 0)$, $\text{food} = (0, 3)$
-- an internal state $x = (h, s)$, where $h$ is hydration and $s$ is satiation
-- a setpoint $x^\star = (1, 1)$, where comfort is highest
-- internal decay each tick, driven by the environment
-- death when $\min(h, s) \le 0$
-- partial observability: the agent sees a local neighbourhood and its own internal state, not the whole map
-- delayed effects: drinking and eating do not behave like instant abstract buttons; action effects pass through the environment dynamics before fully affecting state
-- action masking: for the observed/input state $z$, only a subset $\mathcal{A}(z) \subseteq \mathcal{A}$ is valid
+The project is now centred on a sharper question:
 
-Valid actions depend on the physical world:
+> when does value-based reinforcement learning stop working as the environment becomes less stationary, less forgiving, and less tied to one fixed layout?
 
-- drink only when water is accessible
-- eat only when food is accessible
-- move only into existing neighbouring hexes
+Prototype 3b is the first point where this becomes visible. Changing the Bellman estimator helped, but it did not reliably break the attractor. The sharper bottleneck was the training distribution.
 
-This makes the problem a partially observed spatial control task, not just a two-variable balancing problem.
+## Current result: Prototype 3b
 
-The observation is augmented with recent drink, eat, and movement history so the DQN can account for delayed effects.
+On the radius-5 commute, vanilla DQN is bimodal.
 
-### Agent
+Some seeds discover the water→food limit cycle. Others fall into the **water-cult attractor**: they camp near water, protect hydration, and never cross the comfort valley to food. Mean comfort hides this failure because one internal variable can remain well-controlled while the policy is *still* behaviourally wrong.
 
-The current agent is a DQN in PyTorch.
+Mean comfort still helps, but the cleaner benchmark is seed-level behaviour:
 
-It approximates the action-value function:
+$$
+\mathbb{E}[C(x_t)]
+$$
 
-$$Q(z, a)$$
+does not answer the behavioural question by itself:
 
-where $z$ is the input state observed by the controller.
+> how many seeds actually learn the water→food cycle?
 
-At evaluation time, the agent selects the highest-valued valid action:
+The best current configuration uses Noisy DQN, count-based novelty, a 50k replay buffer, 10-step returns, comfort-v3, and $\gamma = 0.99$.
 
-$$\arg\max_{a \in \mathcal{A}(z)} Q(z, a)$$
+Across 100 seeds:
 
-The training target is the masked Bellman target:
+* **52%** learn a clean water→food limit cycle.
+* **38%** also survive that cycle under the stricter ≤5 eval-death gate.
+* Median comfort among solved seeds is about **0.93**.
+* 49/100 seeds finish greedy evaluation with zero deaths.
 
-$$y = r + \gamma \max_{a' \in \mathcal{A}(z')} Q_{\theta^-}(z', a')$$
-
-where $\theta^-$ is the target network. Terminal states are masked out of the bootstrap, so $y = r$ when $z'$ is terminal.
-
-The training setup includes:
-
-- experience replay
-- replay warmup
-- target network updates
-- $\varepsilon$-greedy exploration during training
-- final greedy evaluation with exploration disabled ($\varepsilon = 0$)
-- action masking in both training and evaluation
-
-The learned policy commutes between water and food, drinking and eating in turn, instead of starving, dehydrating, or wandering into unused regions of the map.
-
-## Best current result
-
-The figures below show a representative run from the 500k-step spatial prototype.
-
-This is not the best lucky seed. It is the upper-median representative run from the current best training-length region.
-
-**Representative run:** `len500k_seed4`
-
-Config:
-
-- map radius: $r = 3$
-- water: $(-3, 0)$
-- food: $(0, 3)$
-- discount factor: $\gamma = 0.95$
-- exploration: $\varepsilon = 0.2$
-- batch size: $512$
-- replay buffer: $5000$
-- warmup: $500$
-- target update interval: $50$
-- training length: $500{,}000$ ticks
-
-Representative result:
-
-- mean comfort: $\approx 0.584$
-- evaluation deaths: $16$
+The gap between 52% and 38% separates route discovery from reliable survival: some agents learn the water→food cycle, but still execute it with enough instability to die during evaluation.
 
 <p>
-  <img src="results/best_figures/hex_occupancy_len500k_seed4.png" width="700">
+  <img src="results/best_figures/hex_occupancy__headline.png" width="900">
   <br>
-  <sub><em>Hex occupancy across three windows — first training window, last training window, and greedy evaluation — on a log colour scale. Water is outlined in blue, food in orange. Early occupancy is diffuse across the whole map; by evaluation it has collapsed onto the water-food corridor, and the lower-right region is essentially abandoned.</em></sub>
+  <sub><em>Physical-space occupancy over training and greedy evaluation. Early training is diffuse; by evaluation, the learned policy concentrates on the water–food corridor. Blue outline = water, orange outline = food.</em></sub>
 </p>
-<br>
-
-
-The occupancy plot is the clearest spatial result.
-
-At the start of training, the agent visits a broad region of the map. By the end of training and during evaluation, occupancy collapses into a much more useful route between the two resources.
-
-This shows that the policy is not only learning *when* to drink and eat. It is learning *where* the corrective actions are available.
 
 <p>
-  <img src="results/best_figures/phase_density_len500k_seed4.png" width="700">
+  <img src="results/best_figures/phase_density__headline.png" width="650">
   <br>
-  <sub><em>Evaluation phase density over the hydration-satiation plane. The learned policy spends most of its time near the ideal state (h, s) = (1, 1), with a noisy but clear attractor around the comfort region.</em></sub>
+  <sub><em>Internal-state density over the comfort surface during greedy evaluation. The solved policy forms a noisy limit cycle around the comfort basin instead of collapsing onto a single-resource attractor.</em></sub>
 </p>
-<br>
 
-The phase-density plot shows the internal-state behaviour during evaluation.
+## What changed in 3b
 
-The policy does not hold the agent exactly at $x^\star$. Instead, it forms a noisy stable region around the setpoint. That is expected: the agent is operating under decay, movement constraints, delayed action effects, and limited local observation.
+### Comfort surface
 
-The density leans toward higher hydration. This is useful rather than mysterious. Water and food are not symmetric in the transition dynamics, so the learned route favours frequent water correction and less frequent food correction.
+Prototype 3 showed that the old comfort surface was too blunt for a spatial task. In the radius-5 world, the agent often needs to carry a temporary surplus of hydration or satiation while travelling across the map. Being above the setpoint is therefore not the same kind of error as being below it.
 
-<p>
-  <img src="results/best_figures/h_s_len500k_seed4.png" width="700">
-  <br>
-  <sub><em>Hydration and satiation during greedy evaluation. Both variables stay near the ideal line with bounded noise, although sharp dips still occur.</em></sub>
-</p>
-<br>
+The repaired surface separates dangerous deficit from strategic surplus:
 
+$$
+D_{\text{deficit}} =
+(h^\star - h)*+^2 + (s^\star - s)*+^2,
+\qquad
+D_{\text{surplus}} =
+(h - h^\star)*+^2 + (s - s^\star)*+^2
+$$
 
-The evaluation trace shows noisy but functional regulation.
+$$
+d^2 =
+w_{\text{deficit}}D_{\text{deficit}}
++
+w_{\text{surplus}}D_{\text{surplus}},
+\qquad
+C(h,s) = 2e^{-3d^2} - 1
+$$
 
-Hydration and satiation repeatedly drift away from the target and are then corrected by the learned policy. The important result is not perfect flat control. The important result is repeated recovery.
+where $(x)_+ = \max(x, 0)$.
 
-The remaining sharp dips are also useful: they show that the task is not solved yet, and that the next prototype should focus on robustness rather than adding social complexity too early.
+Historically, this continues the reward-geometry repair that began in Prototype 3. Prototype 3 exposed the problem; Prototype 3b refined that surface into part of the consistency benchmark.
 
-<p>
-  <img src="results/best_figures/rolling_comfort_death_len500k_seed4.png" width="700">
-  <br>
-  <sub><em>Rolling comfort and rolling death rate during training. The dotted line marks the final greedy evaluation window. Comfort climbs out of the early failure regime, while death rate falls as the learned policy stabilises.</em></sub>
-</p>
-<br>
+### Credit assignment
 
+The next hypothesis was that the food reward was too far away, so better credit assignment should help the agent understand the value of the full water→food cycle.
 
-The training curves show the transition from unstable exploration to learned regulation.
+That was partly right, but incomplete.
 
-Early training has poor comfort and frequent deaths. Later training is still noisy, but the policy reaches a much better operating region. In the final greedy window, exploration is disabled, so the learned policy is tested directly.
+Double DQN, longer n-step returns, tuned death penalties, and larger $\gamma$ changed how value was propagated through the trajectory. In principle, this should make the delayed value of reaching food easier to learn. But it did not reliably break the water-cult attractor. Longer n-step returns often made the learned behaviour more stable, but stability alone was not enough: the policy could still stabilise around water-camping.
 
-<p>
-  <img src="results/best_figures/ticks_between_deaths_len500k_seed4.png" width="700">
-  <br>
-  <sub><em>Ticks survived between deaths during training and evaluation. The learned policy survives much longer than early training behaviour, but clustered short gaps still reveal post-reset failure cycles.</em></sub>
-</p>
-<br>
+The key issue was:
 
+> a value function can only assign credit to trajectories that enter the training distribution.
 
-The death-gap distribution shows the main remaining failure mode.
+The credit-assignment tools were not useless. They helped once useful trajectories existed. But they could not manufacture those trajectories by themselves.
 
-The agent has learned a useful food-water loop, but it does not always recover from bad reset states or sharp internal-state drops. Some deaths still occur close together, suggesting short post-reset failure cycles.
+The next knob to turn was exploration.
 
-So the next improvement is not just “make the default route better”.
+NoisyNets and count-based novelty worked only together. NoisyNets gave state-dependent exploration; novelty created pressure away from overused regions. Alone, neither was enough. On vanilla DQN, novelty was spent reinforcing the comfortable water region. With NoisyNets, the same bonus helped move the replay distribution into the food corridor.
 
-The next improvement is:
+So the mechanism was *not*:
 
-> make recovery behaviour more robust.
+> curiosity solves the task.
 
-## Interpretation
+It was:
 
-Comfort here, approximately $0.58$, is lower than the earlier non-spatial prototype because the problem is now stricter.
+> induced exploration changes the replay distribution enough for the useful trajectory to become learnable.
 
-In the non-spatial version, `drink` and `eat` were abstract actions. The agent could regulate directly.
+### Replay buffer result
 
-In the spatial version, corrective actions require movement. The agent pays a travel cost in time and decay before it can restore hydration or satiation. It cannot hold both axes exactly at $x^\star$ all the time because access to food and water is physically separated.
+The proposed explanation was FIFO forgetting: food transitions are rare, so perhaps a small buffer evicts them before the agent learns from them.
 
-That is the point of Prototype 2.
+The small-to-medium buffer results supported the retention hypothesis at first.
 
-The controller is no longer solving only:
+Increasing the buffer from 5k to 50k–100k improved solve-rate and reduced deaths. But a near-non-evicting 520k buffer collapsed to 0/10.
 
-> keep internal variables near their setpoints.
+That ruled out simple FIFO eviction as the whole explanation.
 
-It is solving:
+The issue is *not only* that useful transitions disappear. Old transitions can become stale under a changing policy and reward distribution. The replay buffer is therefore *not just memory*; it is a sampling distribution, and its optimal size is a tradeoff.
 
-> keep internal variables near their setpoints while moving through a constrained world where corrective actions are only available at specific places.
+At this point, more tuning on the fixed radius-5 commute has diminishing returns. It *could* improve the benchmark, but it risks turning the project into narrow, map-specific fitting.
 
-The current result is therefore a real step up in difficulty, even though the raw comfort score is lower than Prototype 1.
+That makes the next benchmark a transfer test rather than another radius-5 tuning pass.
 
-## What Prototype 2 demonstrates
+## Project map
 
-Prototype 2 demonstrates that the project has moved from abstract homeostatic control into spatial control.
+| Prototype                                                         | Focus                                                                              | Status     |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------- |
+| [`00_tabular_hydration`](prototypes/00_tabular_hydration)         | Tabular Q-learning on one-axis hydration with delayed drink effects                | Superseded |
+| [`01_numpy_dqn_homeostasis`](prototypes/01_numpy_dqn_homeostasis) | From-scratch NumPy DQN with manual backprop for homeostatic control                | Superseded |
+| [`01b_pytorch_dqn_port`](prototypes/01b_pytorch_dqn_port)         | PyTorch port; reproduced the same behaviour and failure modes                      | Superseded |
+| [`02_spatial_dqn`](prototypes/02_spatial_dqn)                     | Hex world, local observation, movement, and action masks                           | Superseded |
+| [`03_spatial_robust`](prototypes/03_spatial_robust)               | Radius-5 exposed the failure of the old reward/metric setup                        | Superseded |
+| [`03b_nstep_robust`](prototypes/03b_nstep_robust)                 | Consistency: exploration vs. the water-cult attractor                              | Current    |
+| `04_generalisation` *(planned)*                                   | Procedurally generated static `r=20` maps; can the policy transfer across layouts? | Next       |
+| `05_regime_shift` *(planned)*                                     | Seasonal brightness, scarce food, and non-stationary reward distributions          | Planned    |
 
-The current DQN can:
+## Repository guide
 
-- learn a repeated food-water movement loop
-- concentrate movement around useful resource locations
-- keep hydration and satiation near the target region for much of evaluation
-- reduce the early high-death training regime
-- produce interpretable diagnostics in both state space and physical space
+| File / folder                                                | Role                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [`BUILDNOTES.md`](BUILDNOTES.md)                             | Compressed project arc and hypothesis ledger                 |
+| [`prototypes/03b_nstep_robust`](prototypes/03b_nstep_robust) | Current prototype: setup, sweeps, solve gates, failure modes |
+| [`results/best_figures`](results/best_figures)               | Headline plots used in this README                           |
+| `prototypes/*/results`                                       | Per-prototype sweep outputs and diagnostics                  |
 
-It cannot yet:
+## Next: Prototype 4
 
-- eliminate deaths
-- reliably recover from bad reset states
-- maintain perfectly stable comfort
-- generalise across larger or shifted maps
-- handle obstacles or seasonal scarcity
-- handle multi-agent interaction
-- prove superiority over a strong hand-coded heuristic
+Prototype 4 should separate generalisation from regime shift.
 
-## Prototype path
+The fixed radius-5 benchmark asks:
 
-| Prototype | Focus | Status |
-|---|---|---|
-| `00_tabular_hydration` | Tabular Q-learning for one-axis hydration control with delayed drink effects | Superseded |
-| `01_numpy_dqn_homeostasis` | From-scratch NumPy DQN for hydration + satiation control | Superseded |
-| `01b_pytorch_dqn_port` | PyTorch port of the abstract DQN controller | Superseded |
-| `02_spatial_dqn` | Physical hex-world with food, water, local observations, and action masks | Current |
-| `03_spatial_robustness` *(planned)* | Larger spatial worlds, action costs, obstacles, and seasonal resource scarcity | Next |
-| `04_multi_agent_homeostasis` *(planned)* | Parameter-shared multi-agent control with separate per-agent states and histories | Later |
+> can the agent learn this commute?
 
-## What this project is trying to build toward
+Prototype 4 asks:
 
-The immediate next step is not multi-agent behaviour yet.
+> can the agent learn a survival rule across layouts?
 
-The next step is to make the spatial benchmark harder and less tied to one fixed route. The current agent can learn a stable loop between two fixed resources. The next prototype should test whether that loop survives when the world itself becomes less forgiving.
+The next environment is a procedurally generated static radius-20 map with different bush and lake layouts. Training and evaluation should be split across map seeds, so success cannot come from memorising one route.
 
-Prototype 3 will add:
+A simple ε-greedy DQN can stay as a baseline here. If it fails on unseen layouts, the failure gives the next comparison a clean target:
 
-- larger maps
-- movement/action costs
-- obstacles
-- seasonal resource scarcity
-- more pressure on recovery behaviour
-- stronger tests against route memorisation
+> what state representation, memory mechanism, exploration process, or training distribution is needed for spatial homeostatic control to generalise?
 
-The goal for the next version is:
-
-> Can the agent still regulate internal state when the shortest useful route is no longer simple, fixed, and always available?
-
-Only after that should the project move into multi-agent control.
-
-The longer-term goal is parameter-shared multi-agent homeostasis: many agents using the same policy weights $\theta$, while each agent maintains its own internal state $x_i$, position $p_i$, observation history, and transition history.
-
-That stage introduces resource competition, interference, and the first conditions under which coordination or failure to coordinate can emerge.
+After that, the project can move to true regime shift: seasonal brightness, scarce food, moving resources, and reward distributions that change under the value function.
