@@ -2,7 +2,7 @@
 
 Reinforcement-learning agents that regulate internal state under spatial constraints.
 
-**Current experiment:** [`03b_nstep_robust`](prototypes/03b_nstep_robust) · **Hypothesis ledger:** [`BUILDNOTES.md`](BUILDNOTES.md)
+**Headline result:** [`03b_nstep_robust`](prototypes/03b_nstep_robust) · **Active work:** `05_generalisation` *(generalising across maps)* · **Hypothesis ledger:** [`BUILDNOTES.md`](BUILDNOTES.md)
 
 The core control problem is:
 
@@ -146,8 +146,9 @@ That makes the next benchmark a transfer test rather than another radius-5 tunin
 | [`02_spatial_dqn`](prototypes/02_spatial_dqn)                     | Hex world, local observation, movement, and action masks                           | Superseded |
 | [`03_spatial_robust`](prototypes/03_spatial_robust)               | Radius-5 exposed the failure of the old reward/metric setup                        | Superseded |
 | [`03b_nstep_robust`](prototypes/03b_nstep_robust)                 | Consistency: exploration vs. the water-cult attractor                              | Current    |
-| `04_generalisation` *(planned)*                                   | Procedurally generated static `r=20` maps; can the policy transfer across layouts? | Next       |
-| `05_regime_shift` *(planned)*                                     | Seasonal brightness, scarce food, and non-stationary reward distributions          | Planned    |
+| [`04_generalisation`](prototypes/04_generalisation)               | Procedural `r=20` maps — route or rule? Falsified the fixed-map approach (H1–H4); bottleneck isolated to directed exploration | Superseded |
+| `05_generalisation` *(active)*                                    | Same task as 04, reframed: one weight set that generalises across resampled maps (curriculum over fresh worlds)               | Next       |
+| `06_regime_shift` *(planned)*                                     | Seasonal brightness, scarce food, and non-stationary reward distributions          | Planned    |
 
 ## Repository guide
 
@@ -158,22 +159,18 @@ That makes the next benchmark a transfer test rather than another radius-5 tunin
 | [`results/best_figures`](results/best_figures)               | Headline plots used in this README                           |
 | `prototypes/*/results`                                       | Per-prototype sweep outputs and diagnostics                  |
 
-## Next: Prototype 4
+## Next: Prototype 5
 
-Prototype 4 should separate generalisation from regime shift.
-
-The fixed radius-5 benchmark asks:
-
-> can the agent learn this commute?
-
-Prototype 4 asks:
+Prototype 4 ran the generalisation test and closed it out on the fixed-map framing. The environment became a procedurally generated radius-20 world with training and evaluation split across map seeds, so success could not come from memorising one route. It asked:
 
 > can the agent learn a survival rule across layouts?
 
-The next environment is a procedurally generated static radius-20 map with different bush and lake layouts. Training and evaluation should be split across map seeds, so success cannot come from memorising one route.
+The answer was no, and the reason is now isolated. Across four pre-registered hypotheses the failure narrowed to a single mechanism: the agent cannot self-commit to a directed crossing through the signal-free middle of the commute. It is not a representation problem (local senses cannot span the dead band, H2), not a reaching problem (placed mid-route it still will not cross, H3), and not an architecture problem (a GRU memory channel does not help and slightly hurts, H4). What is left is directed exploration — credit cannot assign to a journey the policy never commits to sampling. Full record in [`04_generalisation`](prototypes/04_generalisation) and [`BUILDNOTES.md`](BUILDNOTES.md).
 
-A simple ε-greedy DQN can stay as a baseline here. If it fails on unseen layouts, the failure gives the next comparison a clean target:
+That retires the fixed-map framing, not the question. Prototype 5 keeps the same generalisation task but changes the success criterion:
 
-> what state representation, memory mechanism, exploration process, or training distribution is needed for spatial homeostatic control to generalise?
+> stop chasing one config robust across seeds on a fixed map; find one weight set that generalises across maps.
 
-After that, the project can move to true regime shift: seasonal brightness, scarce food, moving resources, and reward distributions that change under the value function.
+Each sim instance becomes a freshly resampled world, evaluated on held-out maps with frozen weights — the route-vs-rule thesis stated directly, since resampling makes route-memorisation impossible by construction. The candidate approach is a curriculum over resampled maps, with band width as a non-leaking curriculum variable, gradient RL retained.
+
+After that, Prototype 6 moves to true regime shift: seasonal brightness, scarce food, moving resources, and reward distributions that change under the value function.
