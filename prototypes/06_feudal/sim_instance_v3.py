@@ -39,6 +39,10 @@ from model_modules.contract_v1 import (
 
 from model_modules.oracle_modules.orchestrator_oracle_v1 import OracleOrchestrator
 
+from model_modules.oracle_modules.orchestrator_noisy_v1 import (
+    make_orchestrator_noisy,
+)
+
 from model_modules.oracle_modules.pathfinder_oracle_v1 import OraclePathfinder
 
 from model_modules.oracle_modules.pathfinder_noisy_v1 import (
@@ -77,6 +81,10 @@ from model_modules.learned_modules.explorer_learned_v1 import (
     make_explorer_learned,
 )
 
+from model_modules.learned_modules.orchestrator_learned_v1 import (
+    make_orchestrator_learned,
+)
+
 from model_modules.oracle_modules.explorer_noisy_v1 import (
     make_explorer_noisy,
 )
@@ -111,7 +119,13 @@ class QueuedAction:
 MODULE_REGISTRY = {
     "orchestrator": {
         "oracle": OracleOrchestrator,
-        # "learned": LearnedOrchestrator,      
+        # instrument: epsilon (general) + crit_scale (the arbitration threshold, whose
+        # ablation has a recorded effect size — hydration deaths 43 -> 10)
+        "noisy_oracle": make_orchestrator_noisy,
+        # 4-way abstract head (GO_WATER / GO_FOOD / CONSUME / EXPLORE); exploration is
+        # DELEGATED to the explorer module so arbitration is not confounded with a task
+        # already established as unlearnable
+        "learned": make_orchestrator_learned,
     },
     "pathfinder": {
         "oracle": OraclePathfinder,

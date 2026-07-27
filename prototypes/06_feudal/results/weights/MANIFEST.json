@@ -2622,6 +2622,192 @@
       },
       "train_seed": 0
     },
+    "orchestrator/o0": {
+      "arch": {
+        "kind": "mlp",
+        "n_act": 4,
+        "n_hidden": 64,
+        "n_input": 10
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T17:17:22+00:00",
+      "git_dirty": true,
+      "git_sha": "61c781b",
+      "metrics": {
+        "best_round": 60,
+        "final": {
+          "buffer": 300000,
+          "causes": {
+            "hydration": 96,
+            "satiation": 35
+          },
+          "epsilon": 0.02,
+          "eval_deaths": 131,
+          "mix_consume": 0.205625,
+          "mix_explore": 0.19573214285714285,
+          "mix_food": 0.061285714285714284,
+          "mix_water": 0.5373571428571429,
+          "round": 60,
+          "solveScore": 0.10273972602739725
+        },
+        "history": [
+          {
+            "buffer": 69988,
+            "causes": {
+              "hydration": 117,
+              "satiation": 40
+            },
+            "epsilon": 0.356,
+            "eval_deaths": 157,
+            "mix_consume": 0.10453571428571429,
+            "mix_explore": 0.7591607142857143,
+            "mix_food": 0.021839285714285714,
+            "mix_water": 0.11446428571428571,
+            "round": 10,
+            "solveScore": 0.07647058823529412
+          },
+          {
+            "buffer": 139978,
+            "causes": {
+              "both": 2,
+              "hydration": 116,
+              "satiation": 48
+            },
+            "epsilon": 0.196,
+            "eval_deaths": 166,
+            "mix_consume": 0.39401785714285714,
+            "mix_explore": 0.3793214285714286,
+            "mix_food": 0.10485714285714286,
+            "mix_water": 0.12180357142857143,
+            "round": 20,
+            "solveScore": 0.07262569832402235
+          },
+          {
+            "buffer": 209967,
+            "causes": {
+              "hydration": 154,
+              "satiation": 44
+            },
+            "epsilon": 0.036,
+            "eval_deaths": 198,
+            "mix_consume": 0.6993928571428571,
+            "mix_explore": 0.22744642857142858,
+            "mix_food": 0.03807142857142857,
+            "mix_water": 0.03508928571428571,
+            "round": 30,
+            "solveScore": 0.038834951456310676
+          },
+          {
+            "buffer": 279956,
+            "causes": {
+              "hydration": 130,
+              "satiation": 68
+            },
+            "epsilon": 0.02,
+            "eval_deaths": 198,
+            "mix_consume": 0.33419642857142856,
+            "mix_explore": 0.3994107142857143,
+            "mix_food": 0.10075,
+            "mix_water": 0.16564285714285715,
+            "round": 40,
+            "solveScore": 0.029411764705882353
+          },
+          {
+            "buffer": 300000,
+            "causes": {
+              "both": 1,
+              "hydration": 198,
+              "satiation": 72
+            },
+            "epsilon": 0.02,
+            "eval_deaths": 271,
+            "mix_consume": 0.19714285714285715,
+            "mix_explore": 0.4506607142857143,
+            "mix_food": 0.148375,
+            "mix_water": 0.20382142857142857,
+            "round": 50,
+            "solveScore": 0.0
+          },
+          {
+            "buffer": 300000,
+            "causes": {
+              "hydration": 96,
+              "satiation": 35
+            },
+            "epsilon": 0.02,
+            "eval_deaths": 131,
+            "mix_consume": 0.205625,
+            "mix_explore": 0.19573214285714285,
+            "mix_food": 0.061285714285714284,
+            "mix_water": 0.5373571428571429,
+            "round": 60,
+            "solveScore": 0.10273972602739725
+          }
+        ],
+        "last": {
+          "causes": {
+            "hydration": 96,
+            "satiation": 35
+          },
+          "eval_deaths": 131,
+          "mix_consume": 0.205625,
+          "mix_explore": 0.19573214285714285,
+          "mix_food": 0.061285714285714284,
+          "mix_water": 0.5373571428571429,
+          "solveScore": 0.10273972602739725
+        }
+      },
+      "module_kind": "orchestrator",
+      "notes": "Learned arbitration. Exploration delegated, not learned.",
+      "obs_fields": [
+        "h",
+        "s",
+        "h_deficit",
+        "s_deficit",
+        "min_drive",
+        "h_minus_s",
+        "water_known",
+        "food_known",
+        "tile_water_lvl",
+        "tile_food_lvl"
+      ],
+      "tag": "o0",
+      "train_config": {
+        "batch_size": 256,
+        "buffer_size": 300000,
+        "cap_per_round": 7000,
+        "death_penalty": 1.0,
+        "eps_end": 0.02,
+        "eps_start": 0.5,
+        "eval_len": 5000,
+        "eval_seeds": [
+          10001,
+          10002,
+          10003,
+          10004,
+          10005,
+          10006,
+          10007,
+          10008
+        ],
+        "gamma": 0.99,
+        "lr": 0.0005,
+        "n_abstract_actions": 4,
+        "n_hidden": 64,
+        "n_step": 10,
+        "note": "4-way abstract head; exploration delegated to the explorer module",
+        "oracle_baseline": 0.4776,
+        "reward": "survival: +0.01/tick alive, -1.0 on death",
+        "rig": "insim_rig_v1 (iterated batch off-policy)",
+        "rounds": 60,
+        "sim_len": 7000,
+        "step_reward": 0.01,
+        "target_sync": 250,
+        "updates_per_round": 500,
+        "warmup": 5000
+      },
+      "train_seed": 0
+    },
     "pathfinder/__probe_tmp__": {
       "arch": {
         "kind": "mlp",
@@ -2630,9 +2816,9 @@
         "n_input": 5
       },
       "contract_version": "v1",
-      "created": "2026-07-27T15:37:38+00:00",
+      "created": "2026-07-27T17:12:04+00:00",
       "git_dirty": true,
-      "git_sha": "6e081ef",
+      "git_sha": "61c781b",
       "metrics": {
         "probe": true
       },
@@ -3321,5 +3507,5 @@
       "train_seed": 0
     }
   },
-  "updated": "2026-07-27T16:16:58+00:00"
+  "updated": "2026-07-27T17:17:22+00:00"
 }

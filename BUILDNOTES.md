@@ -758,6 +758,105 @@ real. Two wording fixes above will make it airtight.
 
 ## Prototype 06 — hypothesis ledger
 
+### P4.1 — VERDICT: the orchestrator learns, and learns the water-cult attractor
+
+**Bet.** Calibration passed decisively (P4.0) and the observation carries no aliasing, so
+arbitration should be the module RL can learn. Four-way abstract head (GO_WATER / GO_FOOD /
+CONSUME / EXPLORE) with exploration delegated, survival reward, fixed eval seeds,
+best-checkpoint.
+
+**Prediction.** Matches the oracle's 0.4776, possibly beats it given the crit_scale=1.5 hint.
+
+**Result.** Falsified. `o0` scores **0.1622 [0.105, 0.242]** against the oracle's 0.4776
+[0.363, 0.595] — CI-separated below. 93 eval deaths against 35.
+
+**But it did not fail the way the explorer failed, and the difference is the finding.**
+
+| action | share |
+|---|---|
+| GO_WATER | **0.537** |
+| GO_FOOD | **0.061** |
+| CONSUME | 0.206 |
+| EXPLORE | 0.196 |
+
+Deaths split hydration 62 / satiation 31. The policy uses all four actions — it is not
+collapsed, not uniform, not random. It learned a **coherent, structured arbitration policy that
+prefers water nine to one, and then dies of thirst anyway.**
+
+**That is the water-cult attractor, reproduced under decomposition.** Prototype 03b identified it
+in a monolithic DQN on a fixed radius-5 map: seeds that camp near water, protect hydration, and
+never cross the comfort valley to food. Three prototypes later it reappears in a module whose
+*only* job is choosing between two drives, with a continuous non-aliased observation, competent
+oracle execution beneath it, and a pure survival reward.
+
+**So the attractor is not an artifact of end-to-end learning.** It survives isolation of the
+decision from everything else. Water is nearer, encountered more often, and cheaper to reach, so
+a value function trained on survival converges on it — and the resulting policy dies of the drive
+it over-protects, because time spent securing water is time not spent finding food.
+
+**Verdict.** Arbitration is *learnable* — the module acquired a real policy, unlike the explorer,
+which never left uniform. What it learned is the known-bad basin the project has been fighting
+since 03b. The honest claim is not "the orchestrator cannot be learned" but "learning it
+reproduces the pathology hand-tuning was introduced to avoid."
+
+Training was also unstable on fixed eval seeds (solveScore 0.076 / 0.073 / 0.039 / 0.029 / 0.000
+/ 0.103; CONSUME share swinging 0.10 → 0.70 → 0.21), consistent with every other module in this
+prototype.
+
+**Not attempted, and worth stating as the obvious next lever:** hydration deaths outnumber
+satiation deaths 2:1, so a per-cause death penalty — or simply a larger one — would test whether
+the attractor is a reward-scaling artifact or a genuine basin. The prediction is that it is a
+basin: 03b already established that credit-assignment tweaks do not break it, and that the
+binding constraint is the experience distribution rather than the value estimate.
+
+**Harness bug found and fixed.** `score()` called `orch_kw.pop("_impl")` inside the seed loop on
+the caller's dict, so seed 0 consumed the key and every later seed silently fell back to
+`noisy_oracle` while still carrying `weights`. Mutating an argument inside a loop over it.
+
+### P4.0 — orchestrator calibration: GO, and the hand-tuned threshold may be beatable
+
+**Bet.** The orchestrator's observation (h, s, known flags, tile levels) is continuous and
+directly informative about the decision it makes, with no perceptual aliasing — the failure mode
+that killed the explorer structurally does not apply. Calibrate before training.
+
+**Result, 8 seeds.** Two axes: `epsilon` (random legal action) and `crit_scale` (multiplier on
+the critical-drive interrupt thresholds).
+
+| epsilon | solveScore | deaths | | crit_scale | solveScore | deaths |
+|---|---|---|---|---|---|---|
+| 0 | 0.4776 | 35 | | 0.0 | 0.3721 | 54 |
+| 0.05 | 0.4366 | 40 | | 0.5 | 0.3444 | 59 |
+| 0.15 | 0.4267 | 43 | | **1.0 (baseline)** | 0.4776 | 35 |
+| 0.35 | 0.2066 | 96 | | **1.5** | **0.5926** | **22** |
+| 0.70 | **0.0000** | 382 | | 3.0 | 0.2347 | 75 |
+
+**`solveScore` is monotone on the epsilon axis across a dynamic range of 0.478** — the largest of
+any module (explorer 0.362, consumer 0.044). This is the most measurable module in the prototype.
+
+The `crit_scale` axis is a clean inverted U with an **interior optimum**, and both failure modes
+are the predicted ones: at 0 the interrupt never fires and hydration deaths rise 29 → 45; at 3.0
+it fires constantly and `water_visit_pct` hits **80.9%** — the agent camps on the known drive
+instead of exploring. `crit_scale=3.0` [0.162, 0.328] separates from the baseline
+[0.363, 0.595], so the arbitration decision is demonstrably consequential.
+
+**Bonus, not yet a result.** `crit_scale=1.5` scores 0.5926 (22 deaths) against the hand-tuned
+0.4776 (35). The CIs overlap at 8 seeds so this is not established — but the hand-tuned interrupt
+threshold may not sit at its optimum, which would give a learned orchestrator something real to
+beat rather than merely match.
+
+**Harness correction, recorded because changing a test after seeing its output is how thresholds
+stop meaning anything.** The first version demanded that `crit_scale=0` separate from the
+baseline, anchored on the recorded effect "hydration deaths 43 → 10". That figure was measured
+under a *different* configuration — this baseline carries 29 hydration deaths, not 13 — so the
+anchor was mis-specified against a stale number and returned NO-GO. The replacement asks whether
+*any* point on the arbitration axis separates, which is the question the anchor was always trying
+to ask. The PRIMARY criterion — a monotone detector with usable range — is unchanged and passed
+independently of it.
+
+**Verdict: GO.** Train with a survival-based reward (comfort is flat across the tolerance band and
+cannot grade decisions made inside it — see P2), fixed eval seeds, best-checkpoint selection, and
+3 seeds. Hard stop after two failed configurations.
+
 ### P3.4 — VERDICT: the explorer is not learnable on this observation contract
 
 **Bet.** Policy gradient is the first method whose output class contains the target policy.

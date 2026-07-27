@@ -337,6 +337,32 @@ def count_discoveries(run) -> int:
     return int((is_explore[:-1] & is_go[1:]).sum())
 
 
+def orchestrator_reward(step_reward: float = 0.01, death_penalty: float = 1.0):
+    """
+    Orchestrator reward: pure survival. +step_reward per tick alive, -death_penalty on death.
+
+    NOT comfort, and that is a decision paid for in P2. `OVER_TOL = 1.0` makes comfort flat
+    from ideal to ideal+1.0, and the orchestrator's interesting decisions — when to abandon a
+    hunt, when to stop consuming — happen almost entirely INSIDE that flat region. Comfort is
+    constant across exactly the choices being made, so it cannot grade them.
+
+    Survival can. With `step_reward = 0.01` and gamma 0.99 the value of an immortal agent is
+    0.01/(1-0.99) = 1.0, so `death_penalty = 1.0` is "you lose a full lifetime" — commensurate
+    with the discounted return it interrupts, which is the k/(1-gamma) scaling carried since
+    03b rather than an arbitrary constant.
+
+    The orchestrator is dispatched every tick, so transitions are tick-to-tick and n-step
+    returns propagate over real time.
+    """
+    def fn(run, t, t_next):
+        dead = np.asarray(run["death_T"]).astype(bool)
+        span = max(1, t_next - t)
+        died = bool(dead[t:min(len(dead), t + span)].any())
+        return step_reward * span - (death_penalty if died else 0.0)
+
+    return fn
+
+
 def survival_reward(run_key: str = "comfort_T"):
     """
     Orchestrator reward: comfort accrued between decisions, with death heavily penalised.

@@ -99,6 +99,41 @@ timid consumer.
 Eat consumer: **0 dispatches in 1200 nondoomed ticks** (279 drinks in the same run). Untrained by
 design; finding food is the phenomenon under study.
 
+### Orchestrator — learns, and learns the water-cult attractor
+
+**Calibration (P4.0).** `solveScore` monotone on the epsilon axis, dynamic range **0.478**;
+`p05_satiation` range **0.940**. The most measurable module in the prototype.
+
+| epsilon | solveScore | deaths | | crit_scale | solveScore | deaths |
+|---|---|---|---|---|---|---|
+| 0 | 0.4776 | 35 | | 0.0 | 0.3721 | 54 |
+| 0.05 | 0.4366 | 40 | | 0.5 | 0.3444 | 59 |
+| 0.15 | 0.4267 | 43 | | **1.0 (baseline)** | 0.4776 | 35 |
+| 0.35 | 0.2066 | 96 | | **1.5** | 0.5926 | 22 |
+| 0.70 | **0.0000** | 382 | | 3.0 | 0.2347 | 75 |
+
+`crit_scale` is a clean inverted U with an interior optimum. Both predicted failure modes
+reproduce: at 0 the critical-drive interrupt never fires and hydration deaths rise 29 → 45; at
+3.0 it fires constantly and `water_visit_pct` reaches **80.9%**. Only `crit_scale=3.0`
+[0.162, 0.328] separates from the baseline [0.363, 0.595].
+
+**Learned result (P4.1).** 4-way abstract head (GO_WATER / GO_FOOD / CONSUME / EXPLORE),
+exploration delegated, survival reward (+0.01/tick, −1.0 on death).
+
+| | solveScore | CI | deaths |
+|---|---|---|---|
+| oracle | 0.4776 | [0.363, 0.595] | 35 |
+| learned `o0` | **0.1622** | [0.105, 0.242] | 93 |
+
+CI-separated below. Action mix: **GO_WATER 0.537 / GO_FOOD 0.061** / CONSUME 0.206 /
+EXPLORE 0.196. Deaths hydration 62 / satiation 31.
+
+The policy is not collapsed — it uses all four actions and prefers water **nine to one**, then
+dies of thirst. That is the water-cult attractor from Prototype 3b, reproduced in a module whose
+only job is arbitration, with a non-aliased observation and oracle execution beneath it. **The
+attractor survives isolation, so it is a property of the task rather than of end-to-end
+learning.**
+
 ### Explorer — not learnable on this observation contract
 
 | attempt | held-out solveScore | mechanism of failure |

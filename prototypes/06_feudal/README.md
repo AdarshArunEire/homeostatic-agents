@@ -10,7 +10,8 @@ asking whether one monolithic policy can survive and asks a sharper question:
 
 ## One-line result
 
-**Three of four modules are learnable; the fourth is not, and the reason is structural.**
+**Both modules that were trained end-to-end are learnable; the explorer is not, and the reason is
+structural.**
 The pathfinder is recovered to optimality by the same algorithm class that solved 0/40
 end-to-end in Proto 04 — decomposition, not architecture, is what made it tractable. The
 consumer is learnable but turns out to be *invisible to the environment*. The explorer
@@ -22,10 +23,27 @@ class a five-parameter heuristic already occupies optimally.
 | pathfinder | **solved** | 1.0000 optimality on every operational band, 3-seed reproducible, +0.000 solveScore delta in-sim over 34,859 invocations |
 | drink consumer | **learnable, but unmeasurable** | certified out-of-sample (37 deaths vs oracle 35); environment cannot resolve it |
 | eat consumer | **untrained** — starved by construction | 0 dispatches in 1200 nondoomed ticks; finding food is the phenomenon |
+| orchestrator | **learns — and learns the water-cult attractor** | 0.1622 vs oracle 0.4776; GO_WATER 9:1 over GO_FOOD, then dies of thirst |
 | explorer | **not learnable on this contract** | 5 methods, all at or below the random floor |
 
+The two failures are not the same failure. The explorer never left uniform random — it acquired
+no policy at all. The orchestrator acquired a **coherent, structured** policy and converged on the
+pathological one: the water-cult attractor that Prototype 03b identified in a monolithic DQN on a
+fixed map. It survives decomposition, isolation of the decision, a continuous non-aliased
+observation, oracle execution beneath it, and a pure survival reward. **The attractor is a
+property of the task, not of end-to-end learning.**
+
 <p>
-  <img src="results/best_figures/module_scoreboard.png" width="860">
+  <img src="results/best_figures/orchestrator_action_mix.png" width="620">
+  <br>
+  <sub><em>The learned orchestrator chooses water nine times more often than food — and then
+  dies of thirst, because time spent securing water is time not spent finding food.</em></sub>
+</p>
+
+<p>
+  <img src="results/best_figures/module_gap.png" width="660">
+  <br>
+  <sub><em>Learned performance as a fraction of the oracle each module replaced.</em></sub>
 </p>
 
 ## The reframe from Proto 04

@@ -5,18 +5,20 @@ make_figures_v1.py  —  every Proto 06 figure, from recorded measurements.
 
 Writes PNGs to prototypes/06_feudal/results/best_figures/.
 
-PROVENANCE. Numbers below are transcribed from the runs recorded in BUILDNOTES (P1.x, P2.x,
-P3.x) and from the harnesses that produced them — `explorer_sensitivity_v1`,
-`consumer_sensitivity_v1`, `test_module_diff_v1`, `reactive_ceiling_v1`,
-`explorer_stochastic_probe_v1`. Every configuration is 8 seeds on the standing config
-(smell 3, band (9,11), nondoomed eval with leeway 10, decay 0.7, h_fill 1.6 / s_fill 1.3),
-unless the figure says otherwise. Constants are kept at the top so a re-run can be diffed
-against them rather than silently overwriting them.
+STYLE. Matches the existing repo figures (plot_fn_v5): matplotlib defaults, short lowercase
+titles, viridis/inferno/magma where a colormap helps. Explanation belongs in the caption next
+to the figure, not inside it — a plot with a paragraph printed on it is harder to read, not
+easier.
+
+PROVENANCE. Numbers are transcribed from the runs recorded in BUILDNOTES (P1.x, P2.x, P3.x,
+P4.x) and from the harnesses that produced them. Every configuration is 8 seeds on the standing
+config (smell 3, band (9,11), nondoomed eval with leeway 10, decay 0.7, h_fill 1.6/s_fill 1.3)
+unless the figure says otherwise. Constants sit at the top so a re-run can be diffed against
+them rather than silently overwriting them.
 """
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import matplotlib
@@ -27,62 +29,44 @@ import numpy as np
 OUT = Path(__file__).resolve().parents[1] / "results" / "best_figures"
 OUT.mkdir(parents=True, exist_ok=True)
 
-# --- palette -------------------------------------------------------------------
-INK = "#1b1b1b"
-MUTED = "#8a8a8a"
-ORACLE = "#2a6f97"
-LEARNED = "#c1451a"
-GOD = "#4a4a4a"
-GOOD = "#2d7a3e"
-GRID = "#e6e6e6"
+plt.rcParams.update({"figure.dpi": 120, "savefig.dpi": 160, "savefig.bbox": "tight"})
 
-plt.rcParams.update({
-    "figure.dpi": 130, "savefig.dpi": 160, "savefig.bbox": "tight",
-    "font.size": 9, "axes.titlesize": 11, "axes.labelsize": 9,
-    "axes.edgecolor": MUTED, "axes.labelcolor": INK, "text.color": INK,
-    "xtick.color": MUTED, "ytick.color": MUTED, "axes.grid": True,
-    "grid.color": GRID, "grid.linewidth": 0.8, "axes.axisbelow": True,
-    "figure.facecolor": "white", "axes.spines.top": False, "axes.spines.right": False,
-})
+ORACLE = "#2166ac"
+LEARNED = "#b2182b"
+NEUTRAL = "#777777"
 
 
 def save(fig, name):
     p = OUT / f"{name}.png"
     fig.savefig(p)
     plt.close(fig)
-    print(f"  wrote {p.relative_to(Path(__file__).resolve().parents[3])}")
+    print(f"  {p.name}")
 
 
 # --- recorded measurements ------------------------------------------------------
 
-# explorer_sensitivity_v1, 8 seeds
-LADDER = [("random", 0.1712, 121), ("momentum", 0.3333, 62),
-          ("smell_momentum\n(reactive)", 0.4776, 35), ("GOD navigation", 1.0000, 0)]
+LADDER = [("random", 0.1712), ("momentum", 0.3333),
+          ("smell_momentum", 0.4776), ("god", 1.0000)]
 
-# held-out solveScore, seeds 0-7, per learned attempt
-LEARNED_ATTEMPTS = [
-    ("DQN\n3 seeds", [0.1130, 0.1092, 0.0553]),
-    ("DQN\n+stratified", [0.1059, 0.1030, 0.0591]),
-    ("DQN\n+terminal fix", [0.1037]),
-    ("DQN\n+softmax eval", [0.1818, 0.1553, 0.1350]),   # best T per seed
-    ("policy grad\nH=0.02", [0.1589]),
-]
+LEARNED_EXPL = {
+    "DQN": [0.1130, 0.1092, 0.0553],
+    "+stratified": [0.1059, 0.1030, 0.0591],
+    "+terminal": [0.1037],
+    "+softmax": [0.1818, 0.1553, 0.1350],
+    "policy grad": [0.1589],
+}
 
-# explorer noisy_oracle calibration: epsilon -> solveScore
 EXPL_CAL = [(0.0, 0.4776), (0.15, 0.4079), (0.4, 0.2703), (0.7, 0.2077), (1.0, 0.1156)]
-# consumer noisy_oracle calibration (drink): drink_rate_at_water, the ONLY monotone detector
 CONS_CAL_SIGMA = [(0.0, 0.8362), (0.05, 0.7997), (0.15, 0.7589), (0.35, 0.7192)]
 CONS_CAL_SOLVE = [(0.0, 0.4776), (0.05, 0.4776), (0.15, 0.4507), (0.35, 0.4571)]
+ORCH_CAL_EPS = [(0.0, 0.4776), (0.05, 0.4366), (0.15, 0.4267), (0.35, 0.2066), (0.7, 0.0000)]
 
-# pathfinder seed 2 training curve (fixed eval set)
 PF_EPISODES = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000]
 PF_ARRIVAL = [0.835, 0.985, 0.940, 0.960, 1.000, 1.000, 0.985, 0.785]
-PF_BEST_EP = 2500
-PF_BANDS = ["approach\n(1-5)", "commute\n(6-11)", "long\n(12-20)", "far\n(21-40)"]
-PF_FINAL_WEIGHTS = [1.0000, 0.9771, 0.7685, 0.3273]   # s2, shipped at episode 4000
-PF_BEST_WEIGHTS = [1.0000, 1.0000, 1.0000, 0.9880]    # s2b, selected at episode 2500
+PF_BANDS = ["approach", "commute", "long", "far"]
+PF_FINAL = [1.0000, 0.9771, 0.7685, 0.3273]
+PF_BEST = [1.0000, 1.0000, 1.0000, 0.9880]
 
-# reactive_ceiling_v1 coordinate sweep, 8 seeds
 CEILING = {
     "persist_p": ([0.40, 0.55, 0.70, 0.75, 0.85, 0.95],
                   [0.4848, 0.4429, 0.5424, 0.4776, 0.4638, 0.2373], 0.75),
@@ -92,260 +76,208 @@ CEILING = {
                           [0.4267, 0.4444, 0.4848, 0.4776, 0.4384], 0.75),
 }
 
+ORCH_MIX = [("GO_WATER", 0.537), ("GO_FOOD", 0.061), ("CONSUME", 0.206), ("EXPLORE", 0.196)]
+ORACLE_MIX = [("GO_WATER", 0.28), ("GO_FOOD", 0.24), ("CONSUME", 0.19), ("EXPLORE", 0.29)]
 
-# --- fig 1: the headline --------------------------------------------------------
+# learned performance as a fraction of the oracle it replaced
+MODULE_GAP = [
+    ("pathfinder", 1.000),
+    ("drink consumer", 0.972),
+    ("orchestrator", 0.340),
+    ("explorer", 0.222),
+]
+
+
+# --- figures --------------------------------------------------------------------
 
 def fig_explorer_ladder():
-    """The single most important figure: the gap, and that nothing closed it."""
-    fig, ax = plt.subplots(figsize=(8.2, 4.4))
+    fig, ax = plt.subplots(figsize=(7.6, 4.2))
 
-    names = [n for n, _, _ in LADDER]
-    vals = [v for _, v, _ in LADDER]
-    xs = np.arange(len(names))
-    cols = [MUTED, MUTED, ORACLE, GOD]
-    ax.bar(xs, vals, width=0.58, color=cols, zorder=3)
-    for x, v, (_, _, d) in zip(xs, vals, LADDER):
-        ax.text(x, v + 0.022, f"{v:.3f}", ha="center", fontsize=9, color=INK)
-        ax.text(x, 0.018, f"{d} deaths", ha="center", fontsize=7.5, color="white", zorder=4)
+    names = [n for n, _ in LADDER]
+    vals = [v for _, v in LADDER]
+    ax.bar(range(len(names)), vals, width=0.6,
+           color=[NEUTRAL, NEUTRAL, ORACLE, "#444444"])
 
-    ax.axhline(0.4776, color=ORACLE, ls="--", lw=1.1, zorder=2)
-    ax.text(len(names) - 0.35, 0.4776 + 0.015, "reactive floor to beat",
-            fontsize=8, color=ORACLE, ha="right")
-    ax.axhline(0.1712, color=MUTED, ls=":", lw=1.1, zorder=2)
-    ax.text(len(names) - 0.35, 0.1712 + 0.015, "random floor",
-            fontsize=8, color=MUTED, ha="right")
+    x0 = len(names) + 0.4
+    for i, (label, scores) in enumerate(LEARNED_EXPL.items()):
+        x = x0 + i * 0.8
+        ax.scatter([x] * len(scores), scores, s=40, color=LEARNED, zorder=4)
 
-    # learned attempts scattered over the gap
-    x0 = len(names) + 0.35
-    for i, (label, scores) in enumerate(LEARNED_ATTEMPTS):
-        x = x0 + i * 0.85
-        ax.scatter([x] * len(scores), scores, s=46, color=LEARNED, zorder=5,
-                   marker="o", edgecolor="white", linewidth=0.8)
-        ax.text(x, -0.075, label, ha="center", va="top", fontsize=7.2, color=LEARNED)
+    ax.axhline(0.4776, color=ORACLE, ls="--", lw=1)
+    ax.axhline(0.1712, color=NEUTRAL, ls=":", lw=1)
 
-    ax.axvspan(len(names) - 0.1, x0 + (len(LEARNED_ATTEMPTS) - 1) * 0.85 + 0.45,
-               color=LEARNED, alpha=0.045, zorder=0)
-    ax.text((x0 + (len(LEARNED_ATTEMPTS) - 1) * 0.85) / 2 + len(names) / 2 + 0.3, 0.92,
-            "five learned attempts — none clears the random floor",
-            fontsize=8.5, color=LEARNED, ha="center", style="italic")
-
-    ax.set_xticks(list(xs))
-    ax.set_xticklabels(names, fontsize=8.5)
-    ax.set_ylim(-0.02, 1.06)
-    ax.set_xlim(-0.6, x0 + (len(LEARNED_ATTEMPTS) - 1) * 0.85 + 0.55)
-    ax.set_ylabel("solveScore  =  timeouts / (timeouts + deaths)")
-    ax.set_title("Explorer: hand-written policies span 0.17–1.00; every learned policy sits at ~0.10\n"
-                 "smell 3 · band (9,11) · nondoomed cold start · 8 seeds", loc="left")
+    ticks = list(range(len(names))) + [x0 + i * 0.8 for i in range(len(LEARNED_EXPL))]
+    labels = names + list(LEARNED_EXPL)
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=8)
+    ax.set_ylim(0, 1.05)
+    ax.set_ylabel("solveScore")
+    ax.set_title("explorer: hand-written policies vs every learned attempt", fontsize=10)
+    ax.grid(axis="y", alpha=0.25)
     save(fig, "explorer_ladder__headline")
 
 
-# --- fig 2: dead band geometry --------------------------------------------------
-
 def fig_dead_band():
-    """Why smell 5 deletes the phenomenon rather than easing it."""
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9.4, 3.9),
-                                   gridspec_kw={"width_ratios": [1.15, 1]})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9, 3.4))
 
     L = 10
-    for row, (r, col) in enumerate([(3, ORACLE), (5, LEARNED)]):
+    for row, r in enumerate([3, 5]):
         y = 1 - row
-        ax1.plot([0, L], [y, y], color=MUTED, lw=1.0, zorder=1)
-        ax1.scatter([0, L], [y, y], s=90, color=[ORACLE, GOOD], zorder=3)
-        # sensed zones
-        ax1.plot([0, r], [y, y], color=col, lw=7, alpha=0.30, solid_capstyle="butt", zorder=2)
-        ax1.plot([L - r, L], [y, y], color=col, lw=7, alpha=0.30, solid_capstyle="butt", zorder=2)
+        ax1.plot([0, L], [y, y], color="0.75", lw=1)
+        ax1.plot([0, r], [y, y], color=ORACLE, lw=8, solid_capstyle="butt", alpha=0.5)
+        ax1.plot([L - r, L], [y, y], color=ORACLE, lw=8, solid_capstyle="butt", alpha=0.5)
         d = max(0, L - 2 * r)
-        if d > 0:
-            ax1.plot([r, L - r], [y, y], color=INK, lw=7, alpha=0.85,
-                     solid_capstyle="butt", zorder=2)
-        ax1.text(-0.9, y, f"r={r}", ha="right", va="center", fontsize=10, color=col)
-        ax1.text(L + 0.5, y, f"blind = {d}", ha="left", va="center", fontsize=9,
-                 color=INK if d else GOOD)
+        if d:
+            ax1.plot([r, L - r], [y, y], color="0.15", lw=8, solid_capstyle="butt")
+        ax1.scatter([0, L], [y, y], s=70, color="0.2", zorder=3)
+        ax1.text(-1.2, y, f"r={r}", ha="right", va="center", fontsize=9)
 
-    ax1.text(0, 1.42, "water", ha="center", fontsize=8, color=ORACLE)
-    ax1.text(L, 1.42, "food", ha="center", fontsize=8, color=GOOD)
-    ax1.set_xlim(-2.6, L + 3.4)
-    ax1.set_ylim(-0.55, 1.7)
+    ax1.set_xlim(-2.5, L + 1)
+    ax1.set_ylim(-0.6, 1.6)
     ax1.set_yticks([])
-    ax1.set_xlabel("hexes along the commute  (L = 10)")
-    ax1.grid(False)
-    ax1.set_title("Sensed / blind, by smell radius", loc="left")
+    ax1.set_xlabel("hexes along the commute")
+    ax1.set_title("sensed (blue) vs blind (black), L = 10", fontsize=10)
 
     rs = np.linspace(1, 6, 400)
     for L_, ls in [(9, ":"), (10, "-"), (11, "--")]:
-        diff = np.maximum(0, L_ - 2 * rs) ** 2 / rs ** 2
-        ax2.plot(rs, diff, ls, color=INK, lw=1.4, label=f"L={L_}")
-    ax2.axvline(3, color=ORACLE, lw=1.1)
-    ax2.axvline(5, color=LEARNED, lw=1.1)
-    ax2.text(3.05, ax2.get_ylim()[1] * 0.82, "r=3\nphenomenon intact",
-             fontsize=8, color=ORACLE)
-    ax2.text(5.05, ax2.get_ylim()[1] * 0.55, "r=5\ndeleted", fontsize=8, color=LEARNED)
-    ax2.set_xlabel("smell radius  r")
-    ax2.set_ylabel(r"blind-leg difficulty  $\propto (L-2r)^2 / r^2$")
+        ax2.plot(rs, np.maximum(0, L_ - 2 * rs) ** 2 / rs ** 2, ls, color="0.2", lw=1.3,
+                 label=f"L={L_}")
+    ax2.axvline(3, color=ORACLE, lw=1)
+    ax2.axvline(5, color=LEARNED, lw=1)
+    ax2.set_xlabel("smell radius r")
+    ax2.set_ylabel(r"$(L-2r)^2/r^2$")
     ax2.legend(frameon=False, fontsize=8)
-    ax2.set_title("Difficulty is quadratic in the blind width", loc="left")
+    ax2.set_title("blind-leg difficulty", fontsize=10)
+    ax2.grid(alpha=0.25)
 
-    fig.suptitle("The controlling quantity is $L-2r$, not $r$: +2 on radius removes 4 from the blind band",
-                 fontsize=10.5, x=0.02, ha="left")
-    fig.tight_layout(rect=[0, 0, 1, 0.93])
+    fig.tight_layout()
     save(fig, "dead_band_geometry")
 
 
-# --- fig 3: pathfinder checkpoint selection -------------------------------------
-
 def fig_pathfinder_checkpoint():
-    """Capability was in every seed; the variable was where training stopped."""
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9.4, 3.8))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9, 3.4))
 
-    ax1.plot(PF_EPISODES, PF_ARRIVAL, "-o", color=INK, lw=1.5, ms=4.5, zorder=3)
-    bi = PF_EPISODES.index(PF_BEST_EP)
-    ax1.scatter([PF_BEST_EP], [PF_ARRIVAL[bi]], s=150, facecolor="none",
-                edgecolor=GOOD, lw=2, zorder=4)
-    ax1.annotate("selected\n(best checkpoint)", (PF_BEST_EP, PF_ARRIVAL[bi]),
-                 textcoords="offset points", xytext=(-6, -38), fontsize=8,
-                 color=GOOD, ha="center")
-    ax1.scatter([4000], [PF_ARRIVAL[-1]], s=150, facecolor="none",
-                edgecolor=LEARNED, lw=2, zorder=4)
-    ax1.annotate("shipped by default\n(final weights)", (4000, PF_ARRIVAL[-1]),
-                 textcoords="offset points", xytext=(-16, -40), fontsize=8,
-                 color=LEARNED, ha="center")
+    ax1.plot(PF_EPISODES, PF_ARRIVAL, "-o", color="0.2", lw=1.4, ms=4)
+    ax1.scatter([2500], [1.000], s=120, facecolor="none", edgecolor="#1a9850", lw=2, zorder=4)
+    ax1.scatter([4000], [0.785], s=120, facecolor="none", edgecolor=LEARNED, lw=2, zorder=4)
     ax1.set_xlabel("training episode")
-    ax1.set_ylabel("arrival rate (fixed eval set)")
-    ax1.set_ylim(0.72, 1.045)
-    ax1.set_title("Seed 2: the policy peaks, then decays", loc="left")
+    ax1.set_ylabel("arrival rate")
+    ax1.set_title("seed 2: peaks, then decays", fontsize=10)
+    ax1.grid(alpha=0.25)
 
     x = np.arange(len(PF_BANDS))
-    w = 0.38
-    ax2.bar(x - w / 2, PF_FINAL_WEIGHTS, w, label="final weights", color=LEARNED, zorder=3)
-    ax2.bar(x + w / 2, PF_BEST_WEIGHTS, w, label="best checkpoint", color=GOOD, zorder=3)
-    ax2.axhline(0.99, color=INK, ls="--", lw=1.0, zorder=2)
-    ax2.text(3.45, 0.995, "gate 0.99", fontsize=8, ha="right", color=INK)
-    ax2.axvspan(-0.5, 2.5, color=ORACLE, alpha=0.05, zorder=0)
-    ax2.text(1.0, 0.06, "operational range", fontsize=8, color=ORACLE, ha="center")
+    ax2.bar(x - 0.19, PF_FINAL, 0.38, color=LEARNED, label="final weights")
+    ax2.bar(x + 0.19, PF_BEST, 0.38, color="#1a9850", label="best checkpoint")
+    ax2.axhline(0.99, color="0.3", ls="--", lw=1)
     ax2.set_xticks(x)
-    ax2.set_xticklabels(PF_BANDS, fontsize=8)
-    ax2.set_ylim(0, 1.09)
-    ax2.set_ylabel("optimality  (fraction of moves that close the distance)")
+    ax2.set_xticklabels(PF_BANDS, fontsize=9)
+    ax2.set_ylim(0, 1.08)
+    ax2.set_ylabel("optimality")
     ax2.legend(frameon=False, fontsize=8, loc="lower left")
-    ax2.set_title("Same run, same seed — only the checkpoint differs", loc="left")
+    ax2.set_title("same run, different checkpoint", fontsize=10)
+    ax2.grid(axis="y", alpha=0.25)
 
-    fig.suptitle("Best-checkpoint selection turned the worst seed into the best module",
-                 fontsize=10.5, x=0.02, ha="left")
-    fig.tight_layout(rect=[0, 0, 1, 0.92])
+    fig.tight_layout()
     save(fig, "pathfinder_checkpoint_selection")
 
 
-# --- fig 4: calibration ---------------------------------------------------------
-
 def fig_calibration():
-    """Two modules, two metrics: one can rank policies, one cannot."""
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9.4, 3.8))
+    fig, axes = plt.subplots(1, 3, figsize=(11, 3.3))
 
-    e_x = [e for e, _ in EXPL_CAL]
-    e_y = [v for _, v in EXPL_CAL]
-    ax1.plot(e_x, e_y, "-o", color=ORACLE, lw=1.8, ms=5.5, zorder=3)
-    ax1.axhline(0.1712, color=MUTED, ls=":", lw=1.1)
-    ax1.text(1.0, 0.19, "random floor", fontsize=8, color=MUTED, ha="right")
-    ax1.set_xlabel("epsilon  (probability of a uniform random move)")
-    ax1.set_ylabel("solveScore")
-    ax1.set_ylim(0.05, 0.55)
-    ax1.set_title(f"EXPLORER — monotone, range {max(e_y)-min(e_y):.3f}", loc="left",
-                  color=GOOD)
-    ax1.annotate("", xy=(1.0, 0.13), xytext=(0.0, 0.46),
-                 arrowprops=dict(arrowstyle="<->", color=GOOD, lw=1.2))
-    ax1.text(0.52, 0.32, "usable\ndynamic range", fontsize=8, color=GOOD, ha="center")
+    for ax, data, title, ylab in [
+        (axes[0], ORCH_CAL_EPS, "orchestrator", "solveScore"),
+        (axes[1], EXPL_CAL, "explorer", "solveScore"),
+    ]:
+        ax.plot([e for e, _ in data], [v for _, v in data], "-o", color=ORACLE, lw=1.6, ms=5)
+        ax.set_xlabel("epsilon")
+        ax.set_ylabel(ylab)
+        ax.set_ylim(-0.03, 0.55)
+        ax.set_title(title, fontsize=10)
+        ax.grid(alpha=0.25)
 
-    c_x = [s for s, _ in CONS_CAL_SOLVE]
-    ax2.plot(c_x, [v for _, v in CONS_CAL_SOLVE], "-o", color=LEARNED, lw=1.8, ms=5.5,
-             label="solveScore (NON-monotone)")
-    ax2.plot(c_x, [v for _, v in CONS_CAL_SIGMA], "-s", color=ORACLE, lw=1.8, ms=5,
-             label="drink_rate (only detector)")
-    ax2.set_xlabel("sigma  (gaussian error on every fill)")
-    ax2.set_ylabel("metric value")
-    ax2.set_ylim(0.40, 0.90)
-    ax2.legend(frameon=False, fontsize=8, loc="center left")
-    ax2.set_title("CONSUMER — barely resolvable, range 0.044", loc="left", color=LEARNED)
+    ax = axes[2]
+    ax.plot([s for s, _ in CONS_CAL_SOLVE], [v for _, v in CONS_CAL_SOLVE], "-o",
+            color=LEARNED, lw=1.6, ms=5, label="solveScore")
+    ax.plot([s for s, _ in CONS_CAL_SIGMA], [v for _, v in CONS_CAL_SIGMA], "-s",
+            color=ORACLE, lw=1.6, ms=4, label="drink_rate")
+    ax.set_xlabel("sigma")
+    ax.set_ylim(0.40, 0.90)
+    ax.legend(frameon=False, fontsize=8)
+    ax.set_title("consumer", fontsize=10)
+    ax.grid(alpha=0.25)
 
-    fig.suptitle("Calibrate before training: a null result only means something if the metric can produce a non-null one",
-                 fontsize=10, x=0.02, ha="left")
-    fig.tight_layout(rect=[0, 0, 1, 0.92])
+    fig.tight_layout()
     save(fig, "calibration_detection_floor")
 
 
-# --- fig 5: reactive ceiling ----------------------------------------------------
-
 def fig_reactive_ceiling():
-    """Is 0.4776 the reactive optimum, or the point we happened to pick?"""
-    fig, axes = plt.subplots(1, 3, figsize=(9.8, 3.4), sharey=True)
-    base = 0.4776
-    # Wilson half-width at these counts is ~0.12; the whole surface sits inside it
-    band = 0.12
+    fig, axes = plt.subplots(1, 3, figsize=(9.6, 3.2), sharey=True)
+    base, band = 0.4776, 0.12
 
     for ax, (name, (xs, ys, bx)) in zip(axes, CEILING.items()):
-        ax.axhspan(base - band, base + band, color=ORACLE, alpha=0.10, zorder=0)
-        ax.plot(xs, ys, "-o", color=INK, lw=1.4, ms=5, zorder=3)
-        bi = xs.index(bx)
-        ax.scatter([bx], [ys[bi]], s=130, facecolor="none", edgecolor=ORACLE, lw=2, zorder=4)
-        ax.axhline(base, color=ORACLE, ls="--", lw=1.0, zorder=2)
-        ax.set_xlabel(name)
-        ax.set_title(name, loc="left", fontsize=9.5)
+        ax.axhspan(base - band, base + band, color=ORACLE, alpha=0.12)
+        ax.plot(xs, ys, "-o", color="0.2", lw=1.4, ms=5)
+        ax.scatter([bx], [ys[xs.index(bx)]], s=110, facecolor="none",
+                   edgecolor=ORACLE, lw=2, zorder=4)
+        ax.set_xlabel(name, fontsize=9)
+        ax.grid(alpha=0.25)
 
     axes[0].set_ylabel("solveScore")
     axes[0].set_ylim(0.20, 0.62)
-    axes[0].text(0.42, base + band - 0.02, "baseline 95% CI", fontsize=7.5, color=ORACLE)
-
-    fig.suptitle("Reactive ceiling: no single-parameter change separates from the baseline CI —\n"
-                 "the spread is sampling noise, not a tuning gradient  (8 seeds)",
-                 fontsize=10, x=0.02, ha="left")
-    fig.tight_layout(rect=[0, 0, 1, 0.88])
+    fig.suptitle("reactive parameter sweep, shaded = baseline 95% CI", fontsize=10)
+    fig.tight_layout(rect=[0, 0, 1, 0.93])
     save(fig, "reactive_ceiling_sweep")
 
 
-# --- fig 6: module scoreboard ---------------------------------------------------
+def fig_orchestrator_mix():
+    """The water-cult attractor, shown rather than described."""
+    fig, ax = plt.subplots(figsize=(6.4, 3.6))
 
-def fig_module_scoreboard():
-    """One-glance summary of which modules RL could learn."""
-    fig, ax = plt.subplots(figsize=(8.6, 3.2))
+    labels = [n for n, _ in ORCH_MIX]
+    x = np.arange(len(labels))
+    ax.bar(x - 0.19, [v for _, v in ORACLE_MIX], 0.38, color=ORACLE, label="oracle")
+    ax.bar(x + 0.19, [v for _, v in ORCH_MIX], 0.38, color=LEARNED, label="learned")
 
-    mods = ["pathfinder", "drink consumer", "eat consumer", "explorer"]
-    status = ["solved", "learnable\nbut unmeasurable", "untrained\n(starved by design)",
-              "NOT learnable\non this contract"]
-    cols = [GOOD, ORACLE, MUTED, LEARNED]
-    notes = [
-        "1.0000 optimality, 3-seed reproducible\n+0.000 solveScore over 34,859 calls",
-        "37 deaths vs oracle 35\nenvironment cannot resolve it",
-        "0 dispatches in 1200 ticks\nfinding food IS the phenomenon",
-        "5 methods, all at or below random\nno positional memory in the contract",
-    ]
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, fontsize=9)
+    ax.set_ylabel("share of decisions")
+    ax.legend(frameon=False, fontsize=9)
+    ax.set_title("orchestrator action mix", fontsize=10)
+    ax.grid(axis="y", alpha=0.25)
+    fig.tight_layout()
+    save(fig, "orchestrator_action_mix")
 
-    for i, (m, s, c, n) in enumerate(zip(mods, status, cols, notes)):
-        y = len(mods) - i - 1
-        ax.barh([y], [1], color=c, alpha=0.13, height=0.72, zorder=1)
-        ax.text(0.015, y + 0.17, m, fontsize=11, color=INK, va="center", weight="bold")
-        ax.text(0.015, y - 0.16, n, fontsize=7.8, color=MUTED, va="center")
-        ax.text(0.985, y, s, fontsize=9.5, color=c, va="center", ha="right", weight="bold")
 
-    ax.set_xlim(0, 1)
-    ax.set_ylim(-0.55, len(mods) - 0.4)
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.grid(False)
-    for sp in ax.spines.values():
-        sp.set_visible(False)
-    ax.set_title("Decomposition makes exploitation learnable and does not rescue exploration",
-                 loc="left", fontsize=11)
-    save(fig, "module_scoreboard")
+def fig_module_gap():
+    """Learned performance as a fraction of the oracle it replaced."""
+    fig, ax = plt.subplots(figsize=(6.4, 3.0))
+
+    names = [n for n, _ in MODULE_GAP]
+    vals = [v for _, v in MODULE_GAP]
+    y = np.arange(len(names))[::-1]
+    cmap = plt.cm.viridis
+    ax.barh(y, vals, height=0.55, color=[cmap(v * 0.85) for v in vals])
+    ax.axvline(1.0, color="0.3", ls="--", lw=1)
+
+    ax.set_yticks(y)
+    ax.set_yticklabels(names, fontsize=9)
+    ax.set_xlim(0, 1.15)
+    ax.set_xlabel("learned / oracle")
+    ax.set_title("how close each learned module came to the policy it replaced", fontsize=10)
+    ax.grid(axis="x", alpha=0.25)
+    fig.tight_layout()
+    save(fig, "module_gap")
 
 
 def main():
-    print("generating Proto 06 figures...")
+    print("figures ->", OUT)
     fig_explorer_ladder()
     fig_dead_band()
     fig_pathfinder_checkpoint()
     fig_calibration()
     fig_reactive_ceiling()
-    fig_module_scoreboard()
-    print("done.")
+    fig_orchestrator_mix()
+    fig_module_gap()
 
 
 if __name__ == "__main__":

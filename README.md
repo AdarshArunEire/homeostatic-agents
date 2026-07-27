@@ -34,11 +34,18 @@ self-commit to a directed crossing of the **dead band** — a 3–5 hex stretch 
 neither resource is detectable.
 
 **Then we decomposed it.** Prototype 06 splits the agent into four modules — orchestrator,
-pathfinder, consumer, explorer — and learns each separately. Three of four are learnable. The
-fourth is not, and the reason turns out to be structural rather than a tuning failure.
+pathfinder, consumer, explorer — and learns each separately. Navigation becomes provably optimal.
+Exploration turns out not to be learnable at all on its observation contract. And arbitration —
+the module that chooses between the two drives — *does* learn a coherent policy, then converges
+on the same **water-cult attractor** Prototype 3b identified three prototypes earlier. The
+pathology survives isolation, which means it belongs to the task rather than to end-to-end
+learning.
 
 <p>
-  <img src="prototypes/06_feudal/results/best_figures/module_scoreboard.png" width="820">
+  <img src="prototypes/06_feudal/results/best_figures/module_gap.png" width="640">
+  <br>
+  <sub><em>Each learned module as a fraction of the hand-written policy it replaced. The
+  pathfinder matches it exactly; the explorer never left random.</em></sub>
 </p>
 
 ---
