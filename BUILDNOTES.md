@@ -607,3 +607,776 @@ Comfort resolves the overfit branch as predicted. 0.555 → 0.547 → 0.459: fla
 **Verdict:** Confirmed at the mechanism — SIL is the first and only intervention in the arc to lift eval penetration off the floor, in a clean monotone dose-response with a genuine optimum at 0.25 and pre-registered overfit at 0.5, on the confound-immune metric that falsified every predecessor. H2's diagnosis holds: the wall was consolidation. The crossings existed in experience but were washed out of the value function by the camping mass; protecting them in a non-evicting archive and forcing their replay makes the greedy policy travel the band. This converts the project's core claim from "the crossing may be structurally unvaluable under gradient TD" to **"the crossing is valuable once its rare successes are protected from eviction and forced into the value update — consolidation was the wall, and it yields."** The dose-response is well-behaved — inert too low, effective at 0.25, degenerate at 0.5 — the shape of a real mechanism, called in advance.
 
 Full solve is not reached, and the reason is now precise and singular: **the value function can only consolidate crossings that occur, and crossings remain rare (median 5/seed at the optimum against a solve bar of 15).** The wall is no longer "can the crossing be valued" — shown, yes — but "can enough crossings be supplied to consolidate." That is the single remaining roadblock, and it is a *supply* problem, not a *valuing* problem. This is the pivot point of Proto 05: consolidation is confirmed, and what remains is crossing supply.
+
+## Prototype 06 — feudal
+
+Config held constant unless noted: oracle stack (orchestrator / explorer / pathfinder / consumer
+all `oracle`), radius 20, band (9,11), curriculum band c_min 2 / c_max 9 / band_width 2,
+life_cap 1000, sim_len 7000 / eval_len 5000, comfort surface `OVER_TOL=1.0` (tolerance band),
+`OVER_W=0.02`, h_fill 1.6 / s_fill 1.3, h_crit=s_crit 0.7, **8 seeds** per cell.
+`solveScore = eval timeouts / (timeouts + deaths)`.
+
+## 1. god_vs_legal_check.py — the headline triple (smell 3, dm 0.7, lw 10)
+
+| policy | eval deaths | solveScore | eval causes |
+|---|---|---|---|
+| GOD (`eval_god_memory`) | 0 | **1.00** | {} |
+| reactive `smell_momentum` | 35 | **0.48** | hydration 29, satiation 6 |
+| random | 121 | **0.17** | hydration 85, satiation 35, both 1 |
+
+solves: god ~1.0, reactive ~0.48, random ~0.17. Reactive deaths are mixed
+hydration/satiation (29 vs 6) — genuine two-resource navigation, not a food-only artifact.
+
+## 2. nondoomed_sweep.py (smell 3, 8 seeds)
+
+**A) explorer comparison @ dm 0.7, leeway 10**
+
+| explorer | mean comfort | eval deaths | solveScore | causes |
+|---|---|---|---|---|
+| random | 0.826 | 121 | 0.17 | hyd 85, sat 35, both 1 |
+| momentum | 0.919 | 62 | 0.33 | hyd 55, sat 7 |
+| smell_momentum | 0.943 | 35 | **0.48** | hyd 29, sat 6 |
+
+Clean monotone ladder 0.17 → 0.33 → 0.48: reactive chemotaxis is a real signal above blind
+momentum, which is above random. This is the floor the learned explorer must beat.
+
+**B) decay sensitivity (smell_momentum, leeway 10)**
+
+| decay_mult | mean comfort | eval deaths | solveScore |
+|---|---|---|---|
+| 0.7 | 0.943 | 35 | **0.48** |
+| 0.9 | 0.924 | 60 | 0.35 |
+
+Confirms "dm 0.7 robust, 0.9 bites thin buffers hard" (0.48 → 0.35).
+
+**C) leeway sensitivity (smell_momentum, dm 0.7)** — how much the nondoomed filter's slack moves the number
+
+| spawn_leeway | mean comfort | eval deaths | solveScore |
+|---|---|---|---|
+| 0 | 0.942 | 38 | 0.46 |
+| 10 | 0.943 | 35 | 0.48 |
+| 25 | 0.956 | 24 | 0.57 |
+
+The filter is the biggest single lever on the number, as the draft flags: relaxing leeway
+0 → 25 moves solveScore 0.46 → 0.57. The operating point (leeway 10 → 0.48) is defensible but
+report it with the leeway stated.
+
+## 3. Food-isolation lineage (beside-water eval, water handed over, 8 seeds)
+
+| smell | eval deaths | solveScore |
+|---|---|---|
+| 3 | 5 | **0.86** |
+| 5 | 5 | 0.86 |
+
+smell 3 reproduces 0.86 exactly. smell 5 came out 0.86 (identical deaths at n=8), vs the draft's
+**0.89** — a 0.03 gap that is 2–3 deaths of seed noise at this sample size, not a real
+disagreement. If you want the 0.89 to stand, re-run at ≥16 seeds; otherwise soften to "≈0.86–0.89".
+
+## Two claims to fix in the draft
+
+**(a) "Smell 3 costs ~0.03 solveScore vs 5 — cheap honesty."**
+True only on the *beside-water* eval (water handed over): 0.86 vs 0.86–0.89, gap ≈ 0.00–0.03.
+On the *nondoomed* eval it is **not cheap**:
+
+| smell (nondoomed, dm 0.7, lw 10) | eval deaths | solveScore |
+|---|---|---|
+| 3 | 35 | 0.48 |
+| 5 | 13 | 0.71 |
+
+That is a **0.23** gap, not 0.03. The reason is consistent with the whole thesis: on nondoomed
+the agent must also *find water from cold*, and radius-5 scent shortens the water leg too, not
+just the food leg. So the honest phrasing is: "smell 3 is nearly free when water is handed over
+(~0.03), but costs ~0.23 on the full nondoomed eval — most of the cost is the water-finding leg,
+which is exactly the dead-band phenomenon we are refusing to delete." This strengthens the
+"keep the scentless middle" argument rather than weakening it.
+
+**(b) "mean comfort is anti-correlated with survival."**
+Not reproduced by these sweeps — and it shouldn't be, because they don't vary fills. Across
+*explorers* and across *leeway*, comfort moves *with* survival (0.826 → 0.943 as deaths fall
+121 → 35; 0.942 → 0.956 as deaths fall 38 → 24). The anti-correlation the draft cites is a
+*fills-axis* claim under the *old* asymmetric-peak comfort (`OVER_TOL=0`, "1.3→1.9: 0.881→0.723").
+Under the current tolerance-band comfort (`OVER_TOL=1.0`) that pull is gone by design. So the
+"comfort is a liar" line is a historical/fills-axis statement; to show it you'd re-run a fill
+sweep with `OVER_TOL=0`. As written next to these tolerance-band numbers it can read as
+contradicted — scope it to "across fills, under the pre-tolerance comfort."
+
+## Verdict
+
+The load-bearing Proto 06 numbers reproduce exactly (god 1.00, reactive 0.48, random 0.17,
+decay 0.7 > 0.9, food-isolation ≈ 0.86). The reframe is well-supported: reactive floor 0.48,
+god cap 1.00, dead band intact at smell 3, and a clean explorer ladder showing chemotaxis is
+real. Two wording fixes above will make it airtight.
+
+*NOTE TO ME LATER CUZ IMMA FORGET* timeseries needed to intergtae a gradient → smell is a tuple of 3, not a scalar. hope this helps!
+
+## Prototype 06 — hypothesis ledger
+
+### P3.4 — VERDICT: the explorer is not learnable on this observation contract
+
+**Bet.** Policy gradient is the first method whose output class contains the target policy.
+DQN returns a deterministic map; the reactive optimum is defined by probabilities. PG learns
+`persist with probability p` as a parameter, and Monte-Carlo returns cannot suffer the
+bootstrap corruption of P3.2.
+
+**Result.** Both ends of the entropy sweep fail, in opposite directions.
+
+| entropy_beta | final entropy H (max 1.792) | held-out solveScore |
+|---|---|---|
+| 0.02 | 1.71-1.76 (96% of uniform) | 0.1589 — indistinguishable from random 0.1712 |
+| 0.003 | **0** | collapsed, deterministic |
+
+No intermediate behaviour. The policy either stays uniform or collapses, with nothing in
+between — which is the signature of a policy gradient carrying **no discriminating signal**.
+If the advantage term contained information, some beta would let it shape the policy toward
+persistence; instead the entropy coefficient alone decides the outcome.
+
+**The crispest statement of the failure.** `momentum` scores 0.333 with NO smell at all,
+against random's 0.171 — persistence alone is the largest single jump in the ladder, larger
+than chemotaxis adds on top of it. The baseline persists ~75% of the time. The learned policy
+at H≈1.75 persists ~1 time in 6. It never acquired the single most valuable behaviour, and
+that behaviour is trivially expressible: the last action sits in the observation as a
+one-hot.
+
+**Methods exhausted, each with a separately diagnosed mechanism:**
+
+| attempt | held-out | mechanism of failure |
+|---|---|---|
+| DQN, 3 seeds | 0.106 / 0.103 / 0.059 | reward diluted to 0.06 rewarded samples per batch |
+| DQN + stratified sampling | ~0.10 | anti-informative Q: discovery bootstrapped into an unrelated post-travel state |
+| DQN + terminal fix | 0.1037 | fix correct but not binding — no change |
+| DQN + softmax eval (T sweep) | peak ≈ random | performance rose monotonically toward the UNIFORM limit; best use of Q was to ignore it |
+| PG, entropy 0.02 | 0.1589 | policy stayed at 96% of uniform entropy — never became selective |
+| PG, entropy 0.003 | collapsed | entropy → 0, deterministic looping |
+
+**Verdict.** The explorer cannot be learned on this observation contract, and the reason is
+structural rather than a tuning failure. `ExplorerObs` carries legality, recent actions,
+smell readings and need flags — **no positional memory**. Coverage, revisit-avoidance and
+frontier-seeking are therefore not representable, which confines the policy class to reactive
+correlated walks with chemotaxis. That class is a five-parameter family, and a hand-tuned
+heuristic already occupies it at or near its optimum: the coordinate sweep found no setting
+whose Wilson interval separates from the baseline's.
+
+**Learning has nothing to add where a five-parameter search suffices.** That is the finding.
+
+**Specification for Proto 07.** Give the explorer state a heuristic cannot cheaply express:
+visit counts, a decaying coverage trace, or an episodic novelty signal. Count-based novelty
+is already convicted as a winner in 03b (β=0.1) and leaks no resource locations, so it stays
+inside the honesty boundary. Only once the policy class contains something beyond a tuned
+correlated walk does "can it be learned?" become a question worth asking again.
+
+### P3.2 — the Q-function was anti-informative: discovery was never terminal
+
+**Bet.** After the sampling fix the explorer still scored ~0.10 against a 0.4776 floor and a
+0.1712 random floor. Hypothesis: the POLICY CLASS is binding — Q-learning returns a greedy
+deterministic policy, and for memoryless POMDP policies the best deterministic policy can be
+arbitrarily suboptimal, the optimum requiring stochasticity (Singh, Jaakkola & Jordan 1994).
+Test by sampling `softmax(Q/T)` from the EXISTING weights, no retraining.
+
+**Prediction.** Inverted-U in T, peaking above argmax and above random at an intermediate
+temperature.
+
+**Result.** Falsified. Gains appeared, but the peaks sit at the MOST UNIFORM temperature:
+
+| tag | argmax | best | at T | random floor |
+|---|---|---|---|---|
+| f0 | 0.1059 | 0.1818 | **10** | 0.1712 |
+| f1 | 0.1030 | 0.1553 | 1 | 0.1712 |
+| f2 | 0.0591 | 0.1350 | **10** | 0.1712 |
+
+No configuration meaningfully clears random. The "improvement" is the policy degenerating
+toward uniform — i.e. the best available use of the Q-function is to ignore it. The harness
+initially mis-reported f0 as a class-binding result because it tested gain-over-argmax before
+testing peak-over-random; fixed to check the anchor first.
+
+**Verdict: the Q-function is anti-informative, and the cause is a broken bootstrap.**
+
+The explorer is dispatched only on EXPLORE_*. When it finds water the orchestrator switches
+to GO_WATER -> CONSUME and only afterwards explores again, so the `next_state` stored against
+the +10 discovery transition was recorded after a full travel-and-drink sequence, in a
+different region, causally unrelated to the action being credited. `build_transitions` marked
+`done` on death only, so every discovery bootstrapped a value from that unrelated state — and
+those transitions were the ones forced into 25% of every batch. The highest-reward samples
+carried the most corrupted targets, which is exactly how a Q-function ends up worse than no
+Q-function.
+
+Fix: `terminal_fn`, with `discovery_terminal()` for the explorer. Discovery ends the
+explorer's task, so +10 becomes a clean terminal reward with no bootstrap. Reward and
+terminality now agree on what "done" means.
+
+**Standing lesson.** In a feudal decomposition, a module's episode boundary is NOT the
+agent's. It ends when the module's sub-task ends. Getting that wrong corrupts precisely the
+transitions the module is supposed to learn from, and the damage is invisible in loss curves
+— it shows up only as a policy that performs worse than ignoring the network.
+
+### P3.1 — first explorer run: the signal never reached the optimiser
+
+**Prediction (pre-registered).** Clears the 0.4776 floor, lands ~0.55-0.65, well short of god.
+
+**Result.** Falsified, and worse than random. Three seeds: 0.113 / 0.109 / 0.055 against the
+reactive floor 0.4776 and the random floor 0.1712.
+
+**This is NOT the "memory does not help" verdict**, and the diagnostic built for exactly this
+distinction says so. `trainDisc` ran 11-54 per round — discoveries happen, the reward fires.
+It never reached a gradient step. Three multiplicative dilutions, two of them self-inflicted:
+
+1. **Natural sparsity.** ~25 discoveries against ~15,000 explorer calls per round = 0.17% of
+   transitions carry reward.
+2. **Uniform capping (mine).** `cap_per_round=3000` thinned ~15,000 to 3,000 uniformly,
+   discarding 80% of the positives with everything else — ~5 rewarded transitions survived
+   per round.
+3. **Uniform replay (mine).** A 231k buffer holding a few hundred positives yields **0.06
+   rewarded samples per 128-batch in expectation**. Almost every update saw step cost alone.
+
+Sub-random scoring follows: with no signal the policy is arbitrary, and an arbitrary
+DETERMINISTIC policy is worse than random. NoisyNet evaluates on mean weights, so it commits
+to the same wrong direction repeatedly and loops, where random at least diffuses.
+
+**This is the Proto 04 verdict recurring one layer up.** There: "credit cannot be assigned to
+a journey never sampled." Here the journey IS sampled, then discarded before it reaches a
+batch. Same wall, moved from the environment into the replay pipeline.
+
+**Fixes, all sampling-side.** Stratified cap (every rewarded transition kept, only the
+zero-reward majority thinned); separate positive/negative buffers with a guaranteed
+`pos_frac=0.25` of each batch; n-step 5 -> 10, carried from the 03b headliner, since an
+explore run before a discovery is far longer than five steps.
+
+**Stated plainly because it must be auditable: this changes SAMPLING, not the task.** The
+reward, the observation and the environment are untouched. The agent still crosses a 3-5 hex
+scentless band from a cold start at smell 3. What changed is whether the optimiser ever sees
+the events that already existed in the data. A result after this fix is still a result; a
+result obtained by weakening the task would not have been.
+
+### P3.0 — the explorer metric is calibrated and usable (run before training)
+
+Calibrate first, train second — the rule taken from the consumer thread, applied for the
+first time before a trainer existed. `noisy_oracle` explorer = `smell_momentum` + epsilon
+uniform legal moves, 8 seeds, standing config.
+
+| arm | eval deaths | solveScore | discoveries |
+|---|---|---|---|
+| random | 121 | 0.1712 | 136 |
+| momentum | 78 | 0.2778¹ | 109 |
+| smell_momentum | 35 | **0.4776** | 97 |
+| noisy eps=0.15 | 45 | 0.4079 | 94 |
+| noisy eps=0.4 | 81 | 0.2703 | 115 |
+| noisy eps=0.7 | 103 | 0.2077 | 121 |
+| noisy eps=1.0 | 153 | 0.1156 | 176 |
+
+¹ ran at `persist_p=0.85` (factory default) against the ledger's 0.75; not comparable to the
+recorded 0.33. Fixed in the harness.
+
+**Instrument checks all pass.** Monotone in epsilon; `eps=1.0` degrades to 0.116 against the
+random anchor 0.17; detection floor at eps=0.15 (14.6% effect); dynamic range 0.362.
+
+**The contrast with the consumer is the point.** There, `solveScore` was NON-monotone under
+controlled degradation and the only qualifying detector spanned 0.044. Here `solveScore`
+itself is monotone across a 0.362 range — 8x. Deaths are dominated by failure to FIND
+resources and the explorer is the module that finds them, so metric and module are aligned
+for the first time in this prototype. A null result from the explorer will therefore be
+interpretable, which was never true of the consumer.
+
+**Discovery counts are confounded by deaths — do not read raw.** random logged 136
+discoveries against smell_momentum's 97 while dying 121 times against 35, because death
+clears memory and forces rediscovery. Per life the ordering inverts and is meaningful (1.12
+vs 2.77). Training and eval now report `disc_per_life`.
+
+**Green light.** Target: beat 0.4776 across 3 seeds, at smell 3, dead band 3-5 hexes, cold
+start, both resources required.
+
+### The phenomenon is parameterised by L − 2r, not by smell radius
+
+Why smell 5 is not "two more units of smell than smell 3". Let `L` be commute length (band
+9-11) and `r` the smell radius. Going water→food the agent is guided while within `r` of
+water (anti-gradient — it knows where it came from) and within `r` of food, so the scentless
+middle has width
+
+  d(r) = max(0, L − 2r)
+
+Radius is subtracted from **both ends**, so +2 on `r` removes 4 from `d`:
+
+| | L=9 | L=10 | L=11 |
+|---|---|---|---|
+| r=3 | 3 | 4 | 5 |
+| r=5 | 0 | 0 | 1 |
+
+Three effects then compound.
+
+1. **Detection area is quadratic.** Cells within `r` on a hex grid are `N(r) = 1 + 3r(r+1)`,
+   so `N(3)=37` and `N(5)=91`. A 1.67x radius gives 2.46x the target area, and random-walk
+   hitting time scales as domain-area / target-area.
+2. **Blind traverse is diffusive.** With no gradient the agent random-walks, so expected
+   crossing time for a gap of width `d` scales as `d²`, not `d`.
+3. **Together**, blind-leg difficulty goes roughly as `(L − 2r)² / r²`. At L=11 that is
+   25/9 ≈ 2.78 for r=3 against 1/25 = 0.04 for r=5 — a factor of ~70. At L ≤ 10 with r=5 the
+   numerator is zero and the term vanishes.
+
+**Consequence.** At r=5 with band (9,11) the dead band is 0-1 hexes: the phenomenon is not
+reduced, it is deleted. The standing r=5 number (0.71 nondoomed) is therefore an upper
+reference like `eval_god_memory`, NOT a second data point on the same task. Corroborated by
+the split already on record: smell 3 and smell 5 tie at 0.86 on food-isolation, where water
+is handed over and the blind leg is largely absent, and diverge to 0.48 vs 0.71 only on
+nondoomed where water must be found from cold.
+
+**Design rule.** To raise `r` without deleting the phenomenon, widen the band to hold `d`
+fixed: smell 3 / band (9,11) and smell 5 / band (13,15) are the same problem. Note
+`hex_world_cached` raises when `WATER_R_MIN < band[0] + band[1]` (currently 20), so band
+(13,15) needs `WATER_R_MIN ≥ 28` and a generator smoke test on a radius-20 disc first.
+
+**Standing config for the explorer verdict** — unchanged, and the floor every comparison is
+measured against: smell 3, band (9,11), nondoomed eval with leeway 10, decay 0.7,
+h_fill 1.6 / s_fill 1.3, crit 0.7, 8 seeds. The agent starts cold and must find water and
+then food; the two-resource claim is evidenced by the eval death split (hydration 29 /
+satiation 6), not assumed. Caveat when quoting 0.48: the nondoomed filter rejects
+unsurvivable spawns but does not impose a minimum distance to water, so the number averages
+over a spread of spawn difficulty rather than a uniformly hard start.
+
+### Learned modules — decisions locked before the first trainer runs
+
+**All four modules are RL. No imitation learning anywhere.** Cloning the oracles was
+considered and dropped. It is not a privilege leak — every Proto 06 oracle is a pure
+function of its own Obs contract, so the labels carry nothing the observation does not —
+but it answers the wrong question. BC shows a module is *representable*; RL shows it is
+*learnable*, and learnability is the only claim Proto 04 makes interesting. Proto 04's
+monolithic 0/40 is the control: if decomposed modules learn under the same algorithm class
+that failed end-to-end, the decomposition is what did the work. Cloning discards that
+comparison.
+
+**Training rig = dependency closure of the module's Obs.** If every field can be
+synthesised without `world_v1` physics, train standalone; if any field is produced by sim
+dynamics, train in-sim with oracles in the other three slots.
+
+| module | rig | reason |
+|---|---|---|
+| pathfinder | standalone hex geometry | `to_goal` is the whole contract |
+| eat / drink | in-sim | decay, day cycle, overfill realise over later ticks |
+| orchestrator | in-sim | drives and memory-filling are sim state |
+| explorer | in-sim | smell field and map |
+
+The standalone pathfinder doubles as a contract test: trained with no access to the sim, it
+must hold up inside the full stack. No change means `PathfinderObs` is closed; degradation
+means it has a dependency it does not declare.
+
+**Pathfinder reward is sparse, not shaped.** Potential-based shaping on `|to_goal|` would
+be legal — the displacement is observed, so it leaks nothing, and the standing
+proximity-as-reward objection concerns the whole agent being paid to approach resources it
+cannot sense. Rejected anyway: it hands over the entire policy and makes the result vacuous.
+Sparse arrival reward plus HER removes the difficulty through better use of the data rather
+than by writing the answer into the reward.
+
+**The pathfinder runs unmasked, so it trains unmasked.** `compose_to_queued_action` passes
+the returned `HexMove` straight into `a_que` with no legality mask, and `PathfinderObs`
+cannot see the rim. Off-board moves are therefore modelled as no-ops that still pay step
+cost, not as illegal actions, so training and inference face the same problem. The
+constraint barely binds — greedy descent toward an interior goal points inward from the rim
+— but matching it removes a silent divergence.
+
+**Judge the pathfinder on optimality, not oracle agreement.** Moves are frequently tied for
+optimal and the oracle tie-breaks first-wins by construction, so agreement understates a
+module that breaks ties differently. Primary metric is the fraction of displacements where
+the chosen move reduces hex distance by 1; agreement is reported alongside as information.
+
+### P1 — does a pathfinder trained outside the sim survive inside it?
+
+**Bet.** `PathfinderObs` carries `to_goal` and nothing else, so the module should be
+trainable on bare hex geometry with no drives, decay or resources. If that holds, the
+observation contract is closed and the standalone rig is a legitimate way to train it.
+
+**Prediction.** Sparse arrival reward + HER converges; exhaustive optimality ≥0.99 on the
+displacements the sim actually produces; swapping it into an otherwise-all-oracle stack
+leaves solveScore unchanged.
+
+**Result.** Trained in 82s, 4000 episodes: arrival 0.990, path efficiency 0.976 on a held
+eval set. In-sim it was invoked 34,697 times across 8 seeds, and solveScore was unchanged
+to three decimals (0.478, 35 eval deaths, identical in both arms).
+
+Exhaustive optimality is graded by displacement, and the gate prediction failed:
+
+| band | n | optimality | agreement |
+|---|---|---|---|
+| approach (≤5) | 90 | 1.0000 | 0.7333 |
+| commute (6–11) | 306 | 0.9804 | 0.6536 |
+| long (12–20) | 864 | 0.9688 | 0.6898 |
+| far (21–40) | 3660 | 0.9134 | 0.6541 |
+
+Two corrections to expectation. Optimality degrades *monotonically* with displacement
+rather than falling off a cliff in the unreachable tail — so the miss is not confined to
+displacements the sim never generates. And oracle agreement sits near 0.66 everywhere while
+optimality is far higher, confirming that most disagreement is tie-breaking, not error:
+off-axis displacements have two distance-reducing moves and the oracle takes first-wins.
+
+Observed in-sim displacement: max 31, p95 15. The gate had been set on a uniform sweep to
+40, i.e. on a region the agent never enters.
+
+**Verdict.** Contract confirmed, module unproven. The swap is clean — trained with no
+access to the sim, invoked heavily, no degradation, no undeclared dependency — which is
+what the standalone rig existed to establish. But solveScore cannot see pathfinder quality
+in this eval: deaths are hydration 29 / satiation 6, i.e. failures to *find* water, and the
+pathfinder only runs once a goal is already known. ~700 genuinely suboptimal moves changed
+the death count by zero because the metric is close to orthogonal to commute execution.
+
+The gate is left failing rather than relaxed. 0.99 was chosen before any distribution was
+observed; lowering it now to produce a pass would be a post-hoc verdict. Next step is to
+re-score on `wf path_efficiency` and `perfectish_trip_rate` — the Proto 04 crossing-quality
+metrics, which are sensitive to this module — and retrain only if the 0.98 commute band
+costs something measurable there.
+
+**Standing caution.** Training showed a transient collapse (arrival 1.000 → 0.535 → 1.000
+between episodes 2000 and 3000) with epsilon already flat at 0.05. Ordinary DQN target
+chasing, benign here because the endpoint recovered, but a module whose final weights land
+mid-collapse would ship silently broken. Sync the target more often than every 500 updates
+on any module where the final checkpoint is the deliverable.
+
+### P1.2 — the pathfinder result does not reproduce across seeds
+
+**Bet.** P1/P1.1 certified `pathfinder/v1` on a sensitive, monotone metric across two evals.
+But it was n=1 on training seeds, and the consumer's oscillation was only visible because
+that module was run repeatedly. Retrain on two further seeds and check the result holds.
+
+**Prediction.** All three land near 0.98 commute optimality; the module is reproducible.
+
+**Result.** Falsified. One seed in three ships a materially degraded module.
+
+| seed | commute | long | far | gate | final arrival | long-band errors |
+|---|---|---|---|---|---|---|
+| 0 (`v1`) | 0.9804 | 0.9688 | 0.9134 | FAIL | 0.990 | — |
+| 1 (`s1`) | **1.0000** | **0.9954** | 0.7443 | **PASS** | 0.980 | 4 sideways, 0 backwards |
+| 2 (`s2`) | 0.9771 | **0.7685** | 0.3273 | FAIL | **0.734** | 40 sideways, **160 backwards** |
+
+The long band (12-20) is operational — measured in-sim displacement was p95 15, max 31 — so
+s2's 0.7685 is a real defect, not tail noise. Error CHARACTER separates them far more sharply
+than optimality does: `excess_steps_per_move` in the long band is 0.0046 for s1 against
+0.4167 for s2, roughly **90x the actual cost**, because s2's errors are backwards (2 steps to
+recover) while s1's are sideways (1). This is the metric added after P1.1 doing exactly the
+job it was added for.
+
+**Verdict.** Capability is present in every seed; what varies is where training stops. s2
+peaked at arrival 1.000 / path_eff 1.000 around episode 2500-3000 and decayed to 0.734 by
+4000 — it shipped mid-collapse. This is the exact hazard flagged in P1's standing caution
+("a module whose final weights land mid-collapse would ship silently broken") which was then
+backported only to the consumer trainer, not this one.
+
+Fix applied: best-checkpoint selection on the fixed eval set, plus an instability warning
+when arrival spread exceeds 0.15.
+
+**P1.3 — the fix, on the same seed.** Re-running seed 2 with selection (`s2b`) produces an
+identical training trajectory; only the saved checkpoint differs. Episode 2500 is selected
+instead of 4000:
+
+| seed 2 | commute | long | far | pooled | gate |
+|---|---|---|---|---|---|
+| final weights (`s2`) | 0.9771 | 0.7685 | 0.3273 | 0.4575 | FAIL |
+| best weights (`s2b`) | **1.0000** | **1.0000** | **0.9880** | **0.9911** | **PASS** |
+
+`excess_steps_per_move` is 0.0000 across every gated band — zero sideways and zero backwards
+errors from approach through long. The worst seed became the best module of the four, better
+than both seed 0 and seed 1.
+
+**This settles the gate question.** The 0.99 threshold was set before any distribution was
+observed and failed three runs in a row; the tempting response was to lower it to
+manufacture a pass. A properly selected module scores 1.0000 on all three gated bands. The
+gate was correct and the training was not — which is the argument for never relaxing a
+pre-registered threshold to fit a result.
+
+The underlying instability is unchanged (the warning still fires, arrival spread 0.215).
+Selection makes the deliverable reliable; it does not make training stable.
+
+**P1.4 — three seeds with selection.**
+
+| seed | approach | commute | long | far | gate | long-band errors |
+|---|---|---|---|---|---|---|
+| 0 (`s0b`) | 1.0000 | 1.0000 | 0.9954 | 0.8943 | PASS | 4 sideways, 0 backwards |
+| 1 (`s1b`) | 1.0000 | 1.0000 | 0.9850 | 0.9511 | FAIL | 13 sideways, 0 backwards |
+| 2 (`s2b`) | 1.0000 | 1.0000 | 1.0000 | 0.9880 | PASS | none |
+
+**2/3 clear the pre-registered gate.** All three are perfect on approach and commute; the
+only variation is the long band, where seed 1 misses 0.99 by 0.004.
+
+Shipped module: `pathfinder/s2b` — 1.0000 on every gated band, `excess_steps_per_move`
+0.0000 throughout, 0.9880 on the ungated far band.
+
+**Note on the gate, recorded now so it is pre-registered rather than fitted.** Seed 1's
+thirteen long-band errors are all sideways, costing 0.0150 excess steps per move, against
+0.4167 for the genuinely broken final-weights `s2`. A 28x difference in real cost that a
+per-band optimality threshold scores identically as "FAIL" — the gate is keyed on error
+rate, which P1.1 already convicted in favour of error character. Seed 0 makes the same point
+from the other side: it PASSES while carrying 144 backwards errors in the far band
+(excess/mv 0.1451) against seed 1's 49 (0.0623).
+
+The right gate is therefore `excess_steps_per_move` per band, not optimality per band. That
+criterion is adopted for the ORCHESTRATOR and EXPLORER rungs, whose results do not yet
+exist. It is deliberately NOT applied retroactively to promote `s1b`: noticing a better
+metric after a threshold fails is how thresholds stop meaning anything, and the earlier
+refusal to relax 0.99 is what made the 1.0000 result legible.
+
+**Verdict.** Pathfinder solved and reproducible. Capability was present in every seed from
+the start; the variable was where training stopped. The remaining instability is a property
+of the trainer, not the module.
+
+**What this does and does not overturn.** `pathfinder/v1` remains validly certified — its
+sensitivity result was measured on held-out seeds and stands. What is withdrawn is the
+stronger claim that the pathfinder is RELIABLY learnable: at 1-in-3 failure, a single
+training run is not evidence. Any module certified from one seed should be read as a lower
+bound on variance, not as a result.
+
+### P1.1 — calibrating the metrics against a known-bad pathfinder
+
+**Bet.** P1's null is uninterpretable alone: no metric moved, which supports "module is
+fine" and "metric is blind" equally. Adding a deliberately degraded pathfinder
+(`noisy_oracle`: greedy descent, but a uniformly random step with probability epsilon)
+gives a dose-response curve, and the smallest epsilon a metric can resolve is that metric's
+detection floor. The learned module is then placed against the floor rather than against
+nothing.
+
+**Prediction.** At least one trip metric moves monotonically with epsilon; solveScore does
+not; the learned module lands below the floor of the sensitive metric.
+
+**Result.** 8 seeds, epsilon 0 / 0.02 / 0.06 / 0.12 / 0.25, both evals.
+
+`water_to_food_perfectish_trip_rate` is the sensitive metric — monotone, and near-identical
+on two structurally different evals:
+
+| eps | ~optimality | wf_perfect (nondoomed) | wf_perfect (beside_water) |
+|---|---|---|---|
+| 0 | 1.000 | 1.0000 | 0.9944 |
+| 0.02 | 0.983 | 0.9145 | 0.9155 |
+| 0.06 | 0.950 | 0.7331 | 0.7571 |
+| 0.12 | 0.900 | 0.5136 | 0.5389 |
+| 0.25 | 0.792 | 0.2144 | 0.2405 |
+| learned v1 | 0.980 (commute band) | **0.9935** | **0.9943** |
+
+**solveScore is confirmed blind, and blind in a way a threshold alone would have missed.**
+It is non-monotone in a controlled degradation — nondoomed runs 0.4776 → 0.4706 → 0.4103 →
+0.5246 → 0.4638, i.e. a knowably worse pathfinder scored *higher* than the oracle. Any
+"detection floor" computed from a non-monotone series is an artifact, so the harness now
+gates floors on monotonicity before reporting them. Corollary: the apparent 7.5% learned
+deviation on beside_water solveScore is 3 deaths of seed noise at n=8, not a result.
+`path_efficiency` is monotone but heavily quantised (1.00 / 0.90 / 0.75 — small-integer
+ratios), so it is usable but too coarse to certify at this resolution.
+
+**Verdict.** Pathfinder certified, and the optimality metric partially discredited. The
+learned module deviates 0.0–0.7% on the sensitive metric against a floor at eps≤0.02 whose
+own effect is ~8.5% — an order of magnitude inside it, on both evals.
+
+The interesting part is the discrepancy. At 0.9804 commute optimality the module sits beside
+eps=0.02 (0.983), so a naive reading predicts wf_perfect ≈ 0.915. It scores 0.9935 — roughly
+**12× less damage than its optimality number predicts**. The cause is error *character*, not
+error *rate*: a non-optimal hex move either holds distance (costs 1 step) or opens it (costs
+2), and uniform random noise is ~1/6 reversals while the learned module's errors are
+evidently the cheap kind. Optimality rate weights both equally and therefore overstates
+damage. `excess_steps_per_move` (sideways 1, backwards 2) is added to the diff test as the
+quantity that actually predicts in-sim cost.
+
+Standing consequence: **a module's error rate does not determine its cost; the error
+distribution does.** Calibrate against a known-bad control before reading any null, and do
+not report a detection floor for a metric that has not been shown to be monotone in the
+degradation.
+
+### P2 — comfort cannot train a consumer, because the tolerance band made it flat
+
+**Bet.** The consumer's job is landing a drive in the safe band without gross overfill, so
+discounted comfort over the absorption window (`a_que`, 11 ticks) should be the right local
+signal — it avoids the instantaneous-comfort trap that would reward slamming 1.0.
+
+**Prediction.** Converges to something near oracle behaviour; if it fails, the failure is
+underfilling, because death is only penalised implicitly through the truncated bootstrap.
+
+**Result.** Failure mode predicted correctly, magnitude worse than expected. The drink head
+underfilled to `meanFrac 0.644` (oracle gap ~0.3) and took **48 eval deaths against the
+oracle's 35** — outside the range of every degraded control:
+
+| arm | eval deaths | solveScore |
+|---|---|---|
+| oracle | 35 | 0.478 |
+| noisy epsilon=0.25 (wildest) | 41 | 0.438 |
+| **learned v1 (comfort reward)** | **48** | **0.392** |
+
+The learned consumer is worse than an oracle that plays a uniformly random fill a quarter
+of the time.
+
+Sensitivity sweep (sigma 0.05/0.15/0.35, epsilon 0.02/0.08/0.25, 8 seeds): almost every
+candidate metric is NON-MONOTONE in the degradation and therefore cannot rank consumers at
+all — solveScore, mean comfort, and all four drive percentiles. The single qualifying
+detector is `drink_rate_at_water`, monotone on both axes. Its floor effect is 4.4% (sigma
+0.05) and the learned module deviates 5.6%, i.e. the deviation EXCEEDS the smallest
+detectable effect. Detectably worse, not indistinguishable.
+
+**Verdict.** The reward was wrong, and wrong for a reason this repo had already written
+down. `OVER_TOL = 1.0` makes comfort **flat from ideal to ideal+1.0**, so filling to 1.0,
+1.6 or 2.0 scores identically. The signal is near-constant in the very decision the module
+is making. Underfilling is locally free and is punished only far outside any
+absorption-length window, when decay eats the buffer and the agent dies. The flatness is a
+deliberate honesty property ("safe is safe, no lean-running pull") — it is what makes
+comfort a fair monitoring readout, and it is exactly what disqualifies it as a training
+target. The standing line "comfort and death_rate are not tuning targets" already covered
+this; building a reward on comfort ignored it.
+
+Replacement (`consumer_reward`): ticks bought until the next consume — the module's actual
+causal effect — plus comfort over a longer window as a gross-overfill guard rail only, minus
+an explicit death penalty rather than relying on the truncated bootstrap.
+
+**Second finding, methodological.** The v1 eval used `seed = 10_000 + round`, so every
+checkpoint met a different map and the curve (deaths 3, 2, 2, 7, 4, 9, 3) mixed learning
+with map variation — a random walk read as a training curve. This is the same flaw caught
+and fixed in the pathfinder rig and then reintroduced here. Eval seeds are now a fixed
+pooled set, held apart from training seeds. **Any eval that resamples its world between
+checkpoints is measuring the world, not the policy.**
+
+### P2.1 — survival reward fixes the consumer; the training does not converge
+
+**Bet.** P2's failure was the reward, not the module: comfort is flat across the safe zone,
+so it cannot grade a fill decision. Replacing it with ticks-bought + explicit death penalty
++ comfort as a gross-overfill guard rail should recover oracle-level behaviour.
+
+**Prediction.** meanFrac rises off 0.64, deaths fall from 48 toward the oracle's 35, and the
+`drinkRate` deviation drops inside the detection floor.
+
+**Result.** Confirmed on every count.
+
+| drink arm | eval deaths | solveScore | drinkRate dev | verdict |
+|---|---|---|---|---|
+| oracle | 35 | 0.478 | — | — |
+| learned, comfort reward (P2) | 48 | 0.392 | 5.6% | worse than eps=0.25 noise |
+| learned, survival reward | **37** | **0.464** | **1.2%** | CERTIFIED (sigma floor 4.4%) |
+
+Inside the floor on both degradation axes — comfortably on sigma (4.4% vs 1.2%), marginally
+on epsilon (2.9% vs 1.2%, ratio 2.4 against an arbitrary 3x bar).
+
+**Verdict.** Reward diagnosis confirmed; module certified; **training not converged.** On a
+FIXED eval set, meanFrac ran 0.724 / 0.952 / 0.703 / 0.958 / 0.975 / 0.481 across rounds.
+Fixed seeds mean that is policy oscillation, not map variation. The shipped checkpoint was
+simply round 60's snapshot of that oscillation, so the certification above attaches to an
+arbitrary point on a wandering policy and a different seed would have shipped a different
+module.
+
+Likely cause: `death_penalty=20.0` against `ticks_bought ~0.2-2` and `comfort ~0.94`. The
+death term dominates whenever it fires and fires rarely, giving high-variance targets.
+
+Two responses, and the distinction matters. Best-checkpoint selection on the eval already
+being computed is correct regardless and now ships the best observed policy rather than the
+most recent — but it **masks instability rather than curing it**, so the trainer now prints
+an explicit warning when meanFrac spread exceeds 0.25. Curing it means lowering the death
+penalty or the learning rate.
+
+**Standing consequence.** Every module from here needs best-checkpoint selection and a
+convergence check on a fixed eval set. "Final-round weights" is not a deliverable unless the
+curve is flat, and the pathfinder's own transient collapse (arrival 1.000 -> 0.535 -> 1.000)
+was the first warning of this.
+
+**Housekeeping.** The P2 failure run and this one were both saved as `drink/v1`, so the
+manifest entry for the comfort-reward failure was overwritten. Its numbers survive here;
+the checkpoint does not. Use a fresh tag per run when the previous one is a recorded result.
+
+### P2.2 — the consumer oscillation is buffer flooding, not reward scale
+
+**Bet.** P2.1's oscillation looked like reward variance: `death_penalty=20` dominates
+`ticks_bought ~0.2-2` and `comfort ~0.94` whenever it fires, and it fires rarely. Lowering
+it should reduce target variance and settle the policy.
+
+**Prediction.** meanFrac spread falls below 0.25 at `death_penalty=5`.
+
+**Result.** Backfired. Spread rose 0.494 -> **0.827**, and eval deaths trended upward across
+rounds (19, 20, 19, 31, 30, 28) rather than converging. The direction is informative: a
+smaller death penalty makes underfilling *cheaper*, so the penalty was suppressing the
+degenerate policy, not causing the variance.
+
+**Verdict.** Wrong mechanism. The oscillation is bistable between two degenerate policies —
+fill-nothing (meanFrac 0.157) and fill-everything (0.984) — and the coupling that sustains
+it is **buffer composition**, visible in the call counts. The consumer is invoked once per
+consume, so a fill-nothing policy must drink constantly: round 50 emitted **13,882
+transitions against a typical ~2,500**. One degenerate round therefore contributes ~5x the
+data of a healthy one, dominates the replay buffer, and trains the next round toward itself.
+Positive feedback through the data distribution, which no reward reshaping can damp.
+
+Fix: cap each round's contribution (`cap_per_round`, default 2500, sampled without
+replacement so the round's own distribution survives). Buffer composition then reflects
+rounds rather than how chatty a policy happens to be.
+
+**Generalises to any module whose call frequency is policy-dependent.** The explorer is the
+next case and a worse one: a poor explorer wanders and emits far more decisions than a
+competent one, so an unbounded buffer is biased toward failure by construction.
+
+**On shipping an unconverged module.** `drink/v1` remains usable and the certification
+stands, because selection and certification used disjoint seed sets — best-checkpoint picks
+on 10001-10004, the sensitivity sweep scores on 0-7. The held-out result (37 deaths vs
+oracle 35, drinkRate deviation 1.2% inside a 4.4% floor) is therefore not selection bias.
+What cannot be relied on is the PROCESS: a different training seed would ship different
+weights. Acceptable for exploitation plumbing, not for a module carrying a claim.
+
+### P2.3 — the consumer oscillates across a plateau: fill fraction barely matters
+
+**Bet (P2.2).** Buffer flooding. A degenerate fill-nothing policy drinks constantly, emits
+far more transitions, and dominates the replay buffer.
+
+**Result.** Refuted, and the evidence for it was a misreading. The call counts quoted as
+training contributions were EVAL call counts (pooled over four eval seeds). Actual buffer
+growth is ~900/round, steady, so the 2500 cap never bound. Capping changed nothing: spread
+0.674 against 0.494 uncapped.
+
+**What is actually happening.** meanFrac swings 0.278-0.952 across rounds while eval deaths
+stay inside 17-25. A policy filling 0.28 and one filling 0.95 produce the same outcome. The
+sensitivity sweep says it independently: `sigma=0.35` is enormous fill noise and costs three
+deaths (38 vs oracle 35).
+
+The cause is architectural. `OracleOrchestrator` re-issues CONSUME **every tick** while the
+agent is on a useful tile below target, and `DRINK_AMOUNT = 0.15` means a full 1.0 fill adds
+only ~0.19 hydration — reaching target always takes several consecutive drinks. So **fill
+fraction is a rate, not a level**: a consumer returning 0.3 simply drinks four more times and
+arrives at the same hydration a tick later. The orchestrator's retry loop absorbs the
+consumer's timidity, and only a consumer returning ~0 for all inputs can actually fail.
+
+Consequences:
+
+- The Q-values across the 21 bins are near-flat because most bins genuinely score the same.
+  The argmax is then decided by noise and can flip wholesale between rounds. The policy is
+  not wandering away from a solution; it is wandering across a plateau.
+- `ticks_bought` was a poor reward term for exactly this reason: consecutive CONSUME ticks
+  are one apart, so it contributes 1/50 regardless of action for nearly every transition.
+  Discriminating signal exists only on the last drink of a visit and is swamped.
+
+**Verdict.** Closed, not solved — there is nothing here to solve. The graded consumer is
+largely redundant under an orchestrator that retries, and the environment is insensitive to
+its output over most of the action range. `drink/v1` is certified out-of-sample and is kept;
+further tuning has no upside because the objective does not distinguish the policies being
+tuned between.
+
+**Pre-registered, for the orchestrator and all-learned rungs.** The consumer's irrelevance is
+CONDITIONAL on the oracle orchestrator re-issuing CONSUME every tick. A learned orchestrator
+need not do that. If it issues CONSUME once and moves on, fill fraction stops being a rate
+and becomes a level again, and a consumer certified as harmless here becomes capable of
+starving the agent. Prediction: pairing `drink/v1` with a learned orchestrator that consumes
+non-repeatedly will degrade survival more than either module does alone. That is the first
+real interaction to look for at rung 5, and it means the consumer's certification does not
+transfer across an orchestrator swap.
+
+**The wider point for the remaining modules.** A module can only be shown to matter if the
+environment is sensitive to it. Before training the orchestrator or the explorer, check that
+degrading it moves something — `pathfinder_sensitivity` and `consumer_sensitivity` already
+do this, and running the noisy control BEFORE the trainer would have saved this entire
+sub-thread. Calibrate first, train second.
+
+### Consumer training is data-starved on eat, and not on drink
+
+Measured while probing the in-sim rig, not sought: a 1200-tick oracle-stack run produced
+**279 drink dispatches and 0 eat dispatches**, with `eat_rate_at_food` 0.0. The agent finds
+water quickly and never reaches food at that horizon. Consistent with the Proto 04 water:food
+visit ratio (~25:1) and with the standing death split (hydration 29 / satiation 6) — finding
+food is the hard half, which is the phenomenon Proto 06 exists to study.
+
+Direct consequence for the consumer rung: **the two consumers cannot be trained the same
+way.** Drink gets ample on-policy data from the standing nondoomed config; eat is close to
+starved there and needs the beside-water (food-isolation) config, where water is handed over
+and food encounters are the point. Training both under one config would silently give the eat
+head a few dozen samples and a confident-looking loss curve.
+
+Second-order: any probe or test that exercises "the consumer" must state WHICH slot it
+covered. A run that touches drink 279 times and eat zero times will pass a naive check while
+certifying nothing about half the machinery.
+
+### Infrastructure notes
+
+**Weights: blobs gitignored, manifest committed.** `results/weights/<kind>/<tag>.pt` stores
+arch, obs_fields, train config, seed, git sha and achieved metric — never a bare
+`state_dict`. `MANIFEST.json` carries the same record without the binary, so a checkpoint is
+regenerable from the committed trainer and checkable against it. Modules receive a string
+tag, never a live net: sweeps spawn workers on Windows and torch objects do not survive
+that pickle.

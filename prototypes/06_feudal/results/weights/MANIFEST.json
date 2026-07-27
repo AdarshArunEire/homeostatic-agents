@@ -1,0 +1,3325 @@
+{
+  "entries": {
+    "drink/v1": {
+      "arch": {
+        "kind": "mlp",
+        "n_act": 21,
+        "n_hidden": 64,
+        "n_input": 7
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T12:41:23+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_round": 60,
+        "final": {
+          "buffer": 52057,
+          "epsilon": 0.05,
+          "eval_deaths": 18,
+          "mean_comfort_eval": 0.9396023620388441,
+          "mean_frac": 0.4805838310332153,
+          "n_calls": 4813,
+          "new_trans": 624,
+          "oracle_gap": 0.34094907781102396,
+          "round": 60,
+          "solveScore": 0.47058823529411764
+        },
+        "history": [
+          {
+            "buffer": 9232,
+            "epsilon": 0.435,
+            "eval_deaths": 21,
+            "mean_comfort_eval": 0.9343266387559184,
+            "mean_frac": 0.7238755925729324,
+            "n_calls": 3135,
+            "new_trans": 906,
+            "oracle_gap": 0.3634244267760964,
+            "round": 10,
+            "solveScore": 0.43243243243243246
+          },
+          {
+            "buffer": 18293,
+            "epsilon": 0.252,
+            "eval_deaths": 23,
+            "mean_comfort_eval": 0.9336968304849171,
+            "mean_frac": 0.9519012919280522,
+            "n_calls": 2472,
+            "new_trans": 1134,
+            "oracle_gap": 0.38373896081935477,
+            "round": 20,
+            "solveScore": 0.39473684210526316
+          },
+          {
+            "buffer": 27703,
+            "epsilon": 0.068,
+            "eval_deaths": 25,
+            "mean_comfort_eval": 0.9283438152917283,
+            "mean_frac": 0.7030818865767874,
+            "n_calls": 3261,
+            "new_trans": 627,
+            "oracle_gap": 0.3192989677062872,
+            "round": 30,
+            "solveScore": 0.3902439024390244
+          },
+          {
+            "buffer": 38288,
+            "epsilon": 0.05,
+            "eval_deaths": 21,
+            "mean_comfort_eval": 0.9387362973808717,
+            "mean_frac": 0.9583819823229283,
+            "n_calls": 2398,
+            "new_trans": 1339,
+            "oracle_gap": 0.3363517564769014,
+            "round": 40,
+            "solveScore": 0.43243243243243246
+          },
+          {
+            "buffer": 45801,
+            "epsilon": 0.05,
+            "eval_deaths": 22,
+            "mean_comfort_eval": 0.9370964407280612,
+            "mean_frac": 0.9747606559459596,
+            "n_calls": 2298,
+            "new_trans": 622,
+            "oracle_gap": 0.3637800528570634,
+            "round": 50,
+            "solveScore": 0.42105263157894735
+          },
+          {
+            "buffer": 52057,
+            "epsilon": 0.05,
+            "eval_deaths": 18,
+            "mean_comfort_eval": 0.9396023620388441,
+            "mean_frac": 0.4805838310332153,
+            "n_calls": 4813,
+            "new_trans": 624,
+            "oracle_gap": 0.34094907781102396,
+            "round": 60,
+            "solveScore": 0.47058823529411764
+          }
+        ],
+        "last": {
+          "eval_deaths": 18,
+          "mean_comfort_eval": 0.9396023620388441,
+          "mean_frac": 0.4805838310332153,
+          "n_calls": 4813,
+          "oracle_gap": 0.34094907781102396,
+          "solveScore": 0.47058823529411764
+        }
+      },
+      "module_kind": "drink",
+      "notes": "In-sim RL, oracles in other slots. Config: {'eval_spawn_nondoomed': True, 'spawn_leeway': 10, 'eval_spawn_beside_water': False}",
+      "obs_fields": [
+        "h",
+        "s",
+        "brightness",
+        "tile_water_lvl",
+        "tile_food_lvl",
+        "h_deficit",
+        "s_deficit"
+      ],
+      "tag": "v1",
+      "train_config": {
+        "batch_size": 128,
+        "buffer_size": 200000,
+        "death_penalty": 20.0,
+        "eps_end": 0.05,
+        "eps_frac": 0.5,
+        "eps_start": 0.6,
+        "eval_config": {
+          "eval_spawn_beside_water": false,
+          "eval_spawn_nondoomed": true,
+          "spawn_leeway": 10
+        },
+        "eval_len": 5000,
+        "eval_seeds": [
+          10001,
+          10002,
+          10003,
+          10004
+        ],
+        "gamma": 0.99,
+        "lr": 0.001,
+        "n_bins": 21,
+        "n_hidden": 64,
+        "n_step": 3,
+        "reward": "ticks-bought/50.0 + comfort over 25 - 20.0 on death",
+        "reward_kind": "survival",
+        "rig": "insim_rig_v1 (iterated batch off-policy)",
+        "rounds": 60,
+        "sim_len": 7000,
+        "slot": "drink",
+        "target_sync": 200,
+        "tick_scale": 50.0,
+        "updates_per_round": 400,
+        "warmup": 1000,
+        "window": 25
+      },
+      "train_seed": 0
+    },
+    "drink/v3": {
+      "arch": {
+        "kind": "mlp",
+        "n_act": 21,
+        "n_hidden": 64,
+        "n_input": 7
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T13:17:17+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_round": 10,
+        "final": {
+          "buffer": 8843,
+          "epsilon": 0.435,
+          "eval_deaths": 19,
+          "mean_comfort_eval": 0.937030083667516,
+          "mean_frac": 0.7809934397326045,
+          "n_calls": 2899,
+          "new_trans": 843,
+          "oracle_gap": 0.3286523838143805,
+          "round": 10,
+          "solveScore": 0.45714285714285713
+        },
+        "history": [
+          {
+            "buffer": 8843,
+            "epsilon": 0.435,
+            "eval_deaths": 19,
+            "mean_comfort_eval": 0.937030083667516,
+            "mean_frac": 0.7809934397326045,
+            "n_calls": 2899,
+            "new_trans": 843,
+            "oracle_gap": 0.3286523838143805,
+            "round": 10,
+            "solveScore": 0.45714285714285713
+          },
+          {
+            "buffer": 18062,
+            "epsilon": 0.252,
+            "eval_deaths": 20,
+            "mean_comfort_eval": 0.9458481898679092,
+            "mean_frac": 0.7084774435339628,
+            "n_calls": 3238,
+            "new_trans": 1317,
+            "oracle_gap": 0.313702692578282,
+            "round": 20,
+            "solveScore": 0.4444444444444444
+          },
+          {
+            "buffer": 25837,
+            "epsilon": 0.068,
+            "eval_deaths": 19,
+            "mean_comfort_eval": 0.9409928913205106,
+            "mean_frac": 0.49334745838985605,
+            "n_calls": 4720,
+            "new_trans": 607,
+            "oracle_gap": 0.26566296092946784,
+            "round": 30,
+            "solveScore": 0.45714285714285713
+          },
+          {
+            "buffer": 32983,
+            "epsilon": 0.05,
+            "eval_deaths": 31,
+            "mean_comfort_eval": 0.9167765696565359,
+            "mean_frac": 0.9837914447041707,
+            "n_calls": 2292,
+            "new_trans": 647,
+            "oracle_gap": 0.36470256958229497,
+            "round": 40,
+            "solveScore": 0.32608695652173914
+          },
+          {
+            "buffer": 40449,
+            "epsilon": 0.05,
+            "eval_deaths": 30,
+            "mean_comfort_eval": 0.8398607288340209,
+            "mean_frac": 0.1571711548592666,
+            "n_calls": 13882,
+            "new_trans": 634,
+            "oracle_gap": 0.7521449480798433,
+            "round": 50,
+            "solveScore": 0.3333333333333333
+          },
+          {
+            "buffer": 51863,
+            "epsilon": 0.05,
+            "eval_deaths": 28,
+            "mean_comfort_eval": 0.9226745256387832,
+            "mean_frac": 0.9710697202570978,
+            "n_calls": 2309,
+            "new_trans": 604,
+            "oracle_gap": 0.36155998168248255,
+            "round": 60,
+            "solveScore": 0.3488372093023256
+          }
+        ],
+        "last": {
+          "eval_deaths": 28,
+          "mean_comfort_eval": 0.9226745256387832,
+          "mean_frac": 0.9710697202570978,
+          "n_calls": 2309,
+          "oracle_gap": 0.36155998168248255,
+          "solveScore": 0.3488372093023256
+        }
+      },
+      "module_kind": "drink",
+      "notes": "In-sim RL, oracles in other slots. Config: {'eval_spawn_nondoomed': True, 'spawn_leeway': 10, 'eval_spawn_beside_water': False}",
+      "obs_fields": [
+        "h",
+        "s",
+        "brightness",
+        "tile_water_lvl",
+        "tile_food_lvl",
+        "h_deficit",
+        "s_deficit"
+      ],
+      "tag": "v3",
+      "train_config": {
+        "batch_size": 128,
+        "buffer_size": 200000,
+        "death_penalty": 5.0,
+        "eps_end": 0.05,
+        "eps_frac": 0.5,
+        "eps_start": 0.6,
+        "eval_config": {
+          "eval_spawn_beside_water": false,
+          "eval_spawn_nondoomed": true,
+          "spawn_leeway": 10
+        },
+        "eval_len": 5000,
+        "eval_seeds": [
+          10001,
+          10002,
+          10003,
+          10004
+        ],
+        "gamma": 0.99,
+        "lr": 0.001,
+        "n_bins": 21,
+        "n_hidden": 64,
+        "n_step": 3,
+        "reward": "ticks-bought/50.0 + comfort over 25 - 5.0 on death",
+        "reward_kind": "survival",
+        "rig": "insim_rig_v1 (iterated batch off-policy)",
+        "rounds": 60,
+        "sim_len": 7000,
+        "slot": "drink",
+        "target_sync": 200,
+        "tick_scale": 50.0,
+        "updates_per_round": 400,
+        "warmup": 1000,
+        "window": 25
+      },
+      "train_seed": 0
+    },
+    "drink/v4": {
+      "arch": {
+        "kind": "mlp",
+        "n_act": 21,
+        "n_hidden": 64,
+        "n_input": 7
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T13:30:07+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_round": 30,
+        "final": {
+          "buffer": 26658,
+          "epsilon": 0.068,
+          "eval_deaths": 17,
+          "mean_comfort_eval": 0.9461822334433847,
+          "mean_frac": 0.27831072727937145,
+          "n_calls": 8110,
+          "new_trans": 588,
+          "oracle_gap": 0.426945692330039,
+          "round": 30,
+          "solveScore": 0.48484848484848486
+        },
+        "history": [
+          {
+            "buffer": 9232,
+            "epsilon": 0.435,
+            "eval_deaths": 21,
+            "mean_comfort_eval": 0.9343266387559184,
+            "mean_frac": 0.7238755925729324,
+            "n_calls": 3135,
+            "new_trans": 906,
+            "oracle_gap": 0.3634244267760964,
+            "round": 10,
+            "solveScore": 0.43243243243243246
+          },
+          {
+            "buffer": 18293,
+            "epsilon": 0.252,
+            "eval_deaths": 23,
+            "mean_comfort_eval": 0.9336968304849171,
+            "mean_frac": 0.9519012919280522,
+            "n_calls": 2472,
+            "new_trans": 1134,
+            "oracle_gap": 0.38373896081935477,
+            "round": 20,
+            "solveScore": 0.39473684210526316
+          },
+          {
+            "buffer": 26658,
+            "epsilon": 0.068,
+            "eval_deaths": 17,
+            "mean_comfort_eval": 0.9461822334433847,
+            "mean_frac": 0.27831072727937145,
+            "n_calls": 8110,
+            "new_trans": 588,
+            "oracle_gap": 0.426945692330039,
+            "round": 30,
+            "solveScore": 0.48484848484848486
+          },
+          {
+            "buffer": 36599,
+            "epsilon": 0.05,
+            "eval_deaths": 21,
+            "mean_comfort_eval": 0.9327595000033907,
+            "mean_frac": 0.8458764863217018,
+            "n_calls": 2704,
+            "new_trans": 585,
+            "oracle_gap": 0.3265091820699904,
+            "round": 40,
+            "solveScore": 0.43243243243243246
+          },
+          {
+            "buffer": 43811,
+            "epsilon": 0.05,
+            "eval_deaths": 23,
+            "mean_comfort_eval": 0.9378384219539391,
+            "mean_frac": 0.2977182713749142,
+            "n_calls": 7319,
+            "new_trans": 626,
+            "oracle_gap": 0.4502953005608347,
+            "round": 50,
+            "solveScore": 0.41025641025641024
+          },
+          {
+            "buffer": 52070,
+            "epsilon": 0.05,
+            "eval_deaths": 25,
+            "mean_comfort_eval": 0.9279836636223772,
+            "mean_frac": 0.7469233181493068,
+            "n_calls": 3039,
+            "new_trans": 636,
+            "oracle_gap": 0.3283596062339055,
+            "round": 60,
+            "solveScore": 0.3902439024390244
+          }
+        ],
+        "last": {
+          "eval_deaths": 25,
+          "mean_comfort_eval": 0.9279836636223772,
+          "mean_frac": 0.7469233181493068,
+          "n_calls": 3039,
+          "oracle_gap": 0.3283596062339055,
+          "solveScore": 0.3902439024390244
+        }
+      },
+      "module_kind": "drink",
+      "notes": "In-sim RL, oracles in other slots. Config: {'eval_spawn_nondoomed': True, 'spawn_leeway': 10, 'eval_spawn_beside_water': False}",
+      "obs_fields": [
+        "h",
+        "s",
+        "brightness",
+        "tile_water_lvl",
+        "tile_food_lvl",
+        "h_deficit",
+        "s_deficit"
+      ],
+      "tag": "v4",
+      "train_config": {
+        "batch_size": 128,
+        "buffer_size": 200000,
+        "cap_per_round": 2500,
+        "death_penalty": 20.0,
+        "eps_end": 0.05,
+        "eps_frac": 0.5,
+        "eps_start": 0.6,
+        "eval_config": {
+          "eval_spawn_beside_water": false,
+          "eval_spawn_nondoomed": true,
+          "spawn_leeway": 10
+        },
+        "eval_len": 5000,
+        "eval_seeds": [
+          10001,
+          10002,
+          10003,
+          10004
+        ],
+        "gamma": 0.99,
+        "lr": 0.001,
+        "n_bins": 21,
+        "n_hidden": 64,
+        "n_step": 3,
+        "reward": "ticks-bought/50.0 + comfort over 25 - 20.0 on death",
+        "reward_kind": "survival",
+        "rig": "insim_rig_v1 (iterated batch off-policy)",
+        "rounds": 60,
+        "sim_len": 7000,
+        "slot": "drink",
+        "target_sync": 200,
+        "tick_scale": 50.0,
+        "updates_per_round": 400,
+        "warmup": 1000,
+        "window": 25
+      },
+      "train_seed": 0
+    },
+    "explorer/e0": {
+      "arch": {
+        "kind": "noisy",
+        "n_act": 6,
+        "n_hidden": 128,
+        "n_input": 39,
+        "sigma_0": 0.5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T14:29:42+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_round": 80,
+        "final": {
+          "buffer": 231127,
+          "causes": {
+            "hydration": 51,
+            "satiation": 16
+          },
+          "discoveries": 100,
+          "eval_deaths": 67,
+          "explorer_calls": 11523,
+          "new_trans": 3000,
+          "round": 80,
+          "solveScore": 0.14102564102564102,
+          "train_discoveries": 36
+        },
+        "history": [
+          {
+            "buffer": 28417,
+            "causes": {
+              "both": 4,
+              "hydration": 87,
+              "satiation": 32
+            },
+            "disc_per_life": 0.943089430894309,
+            "discoveries": 116,
+            "eval_deaths": 123,
+            "explorer_calls": 15593,
+            "new_trans": 2310,
+            "round": 10,
+            "solveScore": 0.046511627906976744,
+            "train_discoveries": 26
+          },
+          {
+            "buffer": 56874,
+            "causes": {
+              "both": 3,
+              "hydration": 95,
+              "satiation": 35
+            },
+            "disc_per_life": 0.6992481203007519,
+            "discoveries": 93,
+            "eval_deaths": 133,
+            "explorer_calls": 15729,
+            "new_trans": 2603,
+            "round": 20,
+            "solveScore": 0.029197080291970802,
+            "train_discoveries": 25
+          },
+          {
+            "buffer": 86150,
+            "causes": {
+              "hydration": 79,
+              "satiation": 26
+            },
+            "disc_per_life": 0.9333333333333333,
+            "discoveries": 98,
+            "eval_deaths": 105,
+            "explorer_calls": 14606,
+            "new_trans": 3000,
+            "round": 30,
+            "solveScore": 0.0625,
+            "train_discoveries": 11
+          },
+          {
+            "buffer": 114406,
+            "causes": {
+              "hydration": 75,
+              "satiation": 23
+            },
+            "disc_per_life": 0.9795918367346939,
+            "discoveries": 96,
+            "eval_deaths": 98,
+            "explorer_calls": 13305,
+            "new_trans": 3000,
+            "round": 40,
+            "solveScore": 0.057692307692307696,
+            "train_discoveries": 25
+          },
+          {
+            "buffer": 144103,
+            "causes": {
+              "both": 2,
+              "hydration": 101,
+              "satiation": 29
+            },
+            "disc_per_life": 0.6136363636363636,
+            "discoveries": 81,
+            "eval_deaths": 132,
+            "explorer_calls": 15548,
+            "new_trans": 3000,
+            "round": 50,
+            "solveScore": 0.0364963503649635,
+            "train_discoveries": 24
+          },
+          {
+            "buffer": 172727,
+            "causes": {
+              "hydration": 75,
+              "satiation": 24
+            },
+            "disc_per_life": 0.8080808080808081,
+            "discoveries": 80,
+            "eval_deaths": 99,
+            "explorer_calls": 13754,
+            "new_trans": 3000,
+            "round": 60,
+            "solveScore": 0.0660377358490566,
+            "train_discoveries": 20
+          },
+          {
+            "buffer": 201509,
+            "causes": {
+              "hydration": 66,
+              "satiation": 33
+            },
+            "disc_per_life": 1.3535353535353536,
+            "discoveries": 134,
+            "eval_deaths": 99,
+            "explorer_calls": 14336,
+            "new_trans": 3000,
+            "round": 70,
+            "solveScore": 0.0660377358490566,
+            "train_discoveries": 28
+          },
+          {
+            "buffer": 231127,
+            "causes": {
+              "hydration": 51,
+              "satiation": 16
+            },
+            "disc_per_life": 1.492537313432836,
+            "discoveries": 100,
+            "eval_deaths": 67,
+            "explorer_calls": 11523,
+            "new_trans": 3000,
+            "round": 80,
+            "solveScore": 0.14102564102564102,
+            "train_discoveries": 36
+          }
+        ],
+        "last": {
+          "causes": {
+            "hydration": 51,
+            "satiation": 16
+          },
+          "discoveries": 100,
+          "eval_deaths": 67,
+          "explorer_calls": 11523,
+          "solveScore": 0.14102564102564102
+        }
+      },
+      "module_kind": "explorer",
+      "notes": "Thesis run. Smell 3, dead band intact, cold start, both resources.",
+      "obs_fields": [
+        "legal_0",
+        "legal_1",
+        "legal_2",
+        "legal_3",
+        "legal_4",
+        "legal_5",
+        "act0_0",
+        "act0_1",
+        "act0_2",
+        "act0_3",
+        "act0_4",
+        "act0_5",
+        "act1_0",
+        "act1_1",
+        "act1_2",
+        "act1_3",
+        "act1_4",
+        "act1_5",
+        "act2_0",
+        "act2_1",
+        "act2_2",
+        "act2_3",
+        "act2_4",
+        "act2_5",
+        "act0_valid",
+        "act1_valid",
+        "act2_valid",
+        "w0",
+        "w1",
+        "w2",
+        "w_d1",
+        "w_d2",
+        "f0",
+        "f1",
+        "f2",
+        "f_d1",
+        "f_d2",
+        "need_water",
+        "need_food"
+      ],
+      "tag": "e0",
+      "train_config": {
+        "band": [
+          9,
+          11
+        ],
+        "batch_size": 128,
+        "buffer_size": 300000,
+        "cap_per_round": 3000,
+        "death_penalty": 10.0,
+        "discover_reward": 10.0,
+        "eval_len": 5000,
+        "eval_seeds": [
+          10001,
+          10002,
+          10003,
+          10004
+        ],
+        "gamma": 0.99,
+        "god_ceiling": 1.0,
+        "lr": 0.0005,
+        "n_hidden": 128,
+        "n_step": 5,
+        "reactive_floor": 0.48,
+        "reward": "sparse on discovery (explore->GO_* transition), no smell shaping",
+        "rig": "insim_rig_v1 (iterated batch off-policy)",
+        "rounds": 80,
+        "sim_len": 7000,
+        "smell_radius": 3,
+        "step_cost": 0.02,
+        "target_sync": 250,
+        "updates_per_round": 500,
+        "warmup": 2000
+      },
+      "train_seed": 0
+    },
+    "explorer/e1": {
+      "arch": {
+        "kind": "noisy",
+        "n_act": 6,
+        "n_hidden": 128,
+        "n_input": 39,
+        "sigma_0": 0.5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T14:34:51+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_round": 20,
+        "final": {
+          "buffer": 57373,
+          "causes": {
+            "both": 1,
+            "hydration": 51,
+            "satiation": 21
+          },
+          "discoveries": 122,
+          "eval_deaths": 73,
+          "explorer_calls": 11582,
+          "new_trans": 3000,
+          "round": 20,
+          "solveScore": 0.12048192771084337,
+          "train_discoveries": 14
+        },
+        "history": [
+          {
+            "buffer": 27611,
+            "causes": {
+              "hydration": 111,
+              "satiation": 34
+            },
+            "disc_per_life": 0.5379310344827586,
+            "discoveries": 78,
+            "eval_deaths": 145,
+            "explorer_calls": 16887,
+            "new_trans": 3000,
+            "round": 10,
+            "solveScore": 0.026845637583892617,
+            "train_discoveries": 34
+          },
+          {
+            "buffer": 57373,
+            "causes": {
+              "both": 1,
+              "hydration": 51,
+              "satiation": 21
+            },
+            "disc_per_life": 1.6712328767123288,
+            "discoveries": 122,
+            "eval_deaths": 73,
+            "explorer_calls": 11582,
+            "new_trans": 3000,
+            "round": 20,
+            "solveScore": 0.12048192771084337,
+            "train_discoveries": 14
+          },
+          {
+            "buffer": 86833,
+            "causes": {
+              "both": 1,
+              "hydration": 111,
+              "satiation": 29
+            },
+            "disc_per_life": 0.7872340425531915,
+            "discoveries": 111,
+            "eval_deaths": 141,
+            "explorer_calls": 16999,
+            "new_trans": 2830,
+            "round": 30,
+            "solveScore": 0.03424657534246575,
+            "train_discoveries": 21
+          },
+          {
+            "buffer": 113072,
+            "causes": {
+              "both": 1,
+              "hydration": 80,
+              "satiation": 44
+            },
+            "disc_per_life": 1.344,
+            "discoveries": 168,
+            "eval_deaths": 125,
+            "explorer_calls": 19841,
+            "new_trans": 3000,
+            "round": 40,
+            "solveScore": 0.015748031496062992,
+            "train_discoveries": 28
+          },
+          {
+            "buffer": 141991,
+            "causes": {
+              "hydration": 98,
+              "satiation": 48
+            },
+            "disc_per_life": 1.2123287671232876,
+            "discoveries": 177,
+            "eval_deaths": 146,
+            "explorer_calls": 19767,
+            "new_trans": 2228,
+            "round": 50,
+            "solveScore": 0.0,
+            "train_discoveries": 19
+          },
+          {
+            "buffer": 171594,
+            "causes": {
+              "hydration": 64,
+              "satiation": 31
+            },
+            "disc_per_life": 1.4947368421052631,
+            "discoveries": 142,
+            "eval_deaths": 95,
+            "explorer_calls": 14773,
+            "new_trans": 3000,
+            "round": 60,
+            "solveScore": 0.05,
+            "train_discoveries": 18
+          },
+          {
+            "buffer": 198511,
+            "causes": {
+              "both": 1,
+              "hydration": 50,
+              "satiation": 29
+            },
+            "disc_per_life": 1.7875,
+            "discoveries": 143,
+            "eval_deaths": 80,
+            "explorer_calls": 14109,
+            "new_trans": 3000,
+            "round": 70,
+            "solveScore": 0.058823529411764705,
+            "train_discoveries": 42
+          },
+          {
+            "buffer": 227392,
+            "causes": {
+              "hydration": 52,
+              "satiation": 38
+            },
+            "disc_per_life": 1.6777777777777778,
+            "discoveries": 151,
+            "eval_deaths": 90,
+            "explorer_calls": 14230,
+            "new_trans": 3000,
+            "round": 80,
+            "solveScore": 0.0625,
+            "train_discoveries": 20
+          }
+        ],
+        "last": {
+          "causes": {
+            "hydration": 52,
+            "satiation": 38
+          },
+          "discoveries": 151,
+          "eval_deaths": 90,
+          "explorer_calls": 14230,
+          "solveScore": 0.0625
+        }
+      },
+      "module_kind": "explorer",
+      "notes": "Thesis run. Smell 3, dead band intact, cold start, both resources.",
+      "obs_fields": [
+        "legal_0",
+        "legal_1",
+        "legal_2",
+        "legal_3",
+        "legal_4",
+        "legal_5",
+        "act0_0",
+        "act0_1",
+        "act0_2",
+        "act0_3",
+        "act0_4",
+        "act0_5",
+        "act1_0",
+        "act1_1",
+        "act1_2",
+        "act1_3",
+        "act1_4",
+        "act1_5",
+        "act2_0",
+        "act2_1",
+        "act2_2",
+        "act2_3",
+        "act2_4",
+        "act2_5",
+        "act0_valid",
+        "act1_valid",
+        "act2_valid",
+        "w0",
+        "w1",
+        "w2",
+        "w_d1",
+        "w_d2",
+        "f0",
+        "f1",
+        "f2",
+        "f_d1",
+        "f_d2",
+        "need_water",
+        "need_food"
+      ],
+      "tag": "e1",
+      "train_config": {
+        "band": [
+          9,
+          11
+        ],
+        "batch_size": 128,
+        "buffer_size": 300000,
+        "cap_per_round": 3000,
+        "death_penalty": 10.0,
+        "discover_reward": 10.0,
+        "eval_len": 5000,
+        "eval_seeds": [
+          10001,
+          10002,
+          10003,
+          10004
+        ],
+        "gamma": 0.99,
+        "god_ceiling": 1.0,
+        "lr": 0.0005,
+        "n_hidden": 128,
+        "n_step": 5,
+        "reactive_floor": 0.48,
+        "reward": "sparse on discovery (explore->GO_* transition), no smell shaping",
+        "rig": "insim_rig_v1 (iterated batch off-policy)",
+        "rounds": 80,
+        "sim_len": 7000,
+        "smell_radius": 3,
+        "step_cost": 0.02,
+        "target_sync": 250,
+        "updates_per_round": 500,
+        "warmup": 2000
+      },
+      "train_seed": 1
+    },
+    "explorer/e2": {
+      "arch": {
+        "kind": "noisy",
+        "n_act": 6,
+        "n_hidden": 128,
+        "n_input": 39,
+        "sigma_0": 0.5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T14:40:14+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_round": 20,
+        "final": {
+          "buffer": 58444,
+          "causes": {
+            "hydration": 70,
+            "satiation": 19
+          },
+          "discoveries": 79,
+          "eval_deaths": 89,
+          "explorer_calls": 11764,
+          "new_trans": 3000,
+          "round": 20,
+          "solveScore": 0.09183673469387756,
+          "train_discoveries": 11
+        },
+        "history": [
+          {
+            "buffer": 29758,
+            "causes": {
+              "hydration": 97,
+              "satiation": 23
+            },
+            "disc_per_life": 0.5416666666666666,
+            "discoveries": 65,
+            "eval_deaths": 120,
+            "explorer_calls": 14117,
+            "new_trans": 3000,
+            "round": 10,
+            "solveScore": 0.05511811023622047,
+            "train_discoveries": 28
+          },
+          {
+            "buffer": 58444,
+            "causes": {
+              "hydration": 70,
+              "satiation": 19
+            },
+            "disc_per_life": 0.8876404494382022,
+            "discoveries": 79,
+            "eval_deaths": 89,
+            "explorer_calls": 11764,
+            "new_trans": 3000,
+            "round": 20,
+            "solveScore": 0.09183673469387756,
+            "train_discoveries": 11
+          },
+          {
+            "buffer": 87289,
+            "causes": {
+              "both": 1,
+              "hydration": 82,
+              "satiation": 27
+            },
+            "disc_per_life": 1.0727272727272728,
+            "discoveries": 118,
+            "eval_deaths": 110,
+            "explorer_calls": 17091,
+            "new_trans": 3000,
+            "round": 30,
+            "solveScore": 0.043478260869565216,
+            "train_discoveries": 28
+          },
+          {
+            "buffer": 117136,
+            "causes": {
+              "hydration": 66,
+              "satiation": 32
+            },
+            "disc_per_life": 1.4795918367346939,
+            "discoveries": 145,
+            "eval_deaths": 98,
+            "explorer_calls": 14902,
+            "new_trans": 2847,
+            "round": 40,
+            "solveScore": 0.057692307692307696,
+            "train_discoveries": 21
+          },
+          {
+            "buffer": 146949,
+            "causes": {
+              "both": 1,
+              "hydration": 66,
+              "satiation": 35
+            },
+            "disc_per_life": 1.7843137254901962,
+            "discoveries": 182,
+            "eval_deaths": 102,
+            "explorer_calls": 17387,
+            "new_trans": 3000,
+            "round": 50,
+            "solveScore": 0.019230769230769232,
+            "train_discoveries": 25
+          },
+          {
+            "buffer": 176413,
+            "causes": {
+              "hydration": 93,
+              "satiation": 47
+            },
+            "disc_per_life": 0.9214285714285714,
+            "discoveries": 129,
+            "eval_deaths": 140,
+            "explorer_calls": 19587,
+            "new_trans": 2962,
+            "round": 60,
+            "solveScore": 0.014084507042253521,
+            "train_discoveries": 16
+          },
+          {
+            "buffer": 206413,
+            "causes": {
+              "hydration": 87,
+              "satiation": 44
+            },
+            "disc_per_life": 1.2595419847328244,
+            "discoveries": 165,
+            "eval_deaths": 131,
+            "explorer_calls": 18688,
+            "new_trans": 3000,
+            "round": 70,
+            "solveScore": 0.015037593984962405,
+            "train_discoveries": 21
+          },
+          {
+            "buffer": 236413,
+            "causes": {
+              "both": 1,
+              "hydration": 99,
+              "satiation": 44
+            },
+            "disc_per_life": 1.0555555555555556,
+            "discoveries": 152,
+            "eval_deaths": 144,
+            "explorer_calls": 19099,
+            "new_trans": 3000,
+            "round": 80,
+            "solveScore": 0.0136986301369863,
+            "train_discoveries": 54
+          }
+        ],
+        "last": {
+          "causes": {
+            "both": 1,
+            "hydration": 99,
+            "satiation": 44
+          },
+          "discoveries": 152,
+          "eval_deaths": 144,
+          "explorer_calls": 19099,
+          "solveScore": 0.0136986301369863
+        }
+      },
+      "module_kind": "explorer",
+      "notes": "Thesis run. Smell 3, dead band intact, cold start, both resources.",
+      "obs_fields": [
+        "legal_0",
+        "legal_1",
+        "legal_2",
+        "legal_3",
+        "legal_4",
+        "legal_5",
+        "act0_0",
+        "act0_1",
+        "act0_2",
+        "act0_3",
+        "act0_4",
+        "act0_5",
+        "act1_0",
+        "act1_1",
+        "act1_2",
+        "act1_3",
+        "act1_4",
+        "act1_5",
+        "act2_0",
+        "act2_1",
+        "act2_2",
+        "act2_3",
+        "act2_4",
+        "act2_5",
+        "act0_valid",
+        "act1_valid",
+        "act2_valid",
+        "w0",
+        "w1",
+        "w2",
+        "w_d1",
+        "w_d2",
+        "f0",
+        "f1",
+        "f2",
+        "f_d1",
+        "f_d2",
+        "need_water",
+        "need_food"
+      ],
+      "tag": "e2",
+      "train_config": {
+        "band": [
+          9,
+          11
+        ],
+        "batch_size": 128,
+        "buffer_size": 300000,
+        "cap_per_round": 3000,
+        "death_penalty": 10.0,
+        "discover_reward": 10.0,
+        "eval_len": 5000,
+        "eval_seeds": [
+          10001,
+          10002,
+          10003,
+          10004
+        ],
+        "gamma": 0.99,
+        "god_ceiling": 1.0,
+        "lr": 0.0005,
+        "n_hidden": 128,
+        "n_step": 5,
+        "reactive_floor": 0.48,
+        "reward": "sparse on discovery (explore->GO_* transition), no smell shaping",
+        "rig": "insim_rig_v1 (iterated batch off-policy)",
+        "rounds": 80,
+        "sim_len": 7000,
+        "smell_radius": 3,
+        "step_cost": 0.02,
+        "target_sync": 250,
+        "updates_per_round": 500,
+        "warmup": 2000
+      },
+      "train_seed": 2
+    },
+    "explorer/f0": {
+      "arch": {
+        "kind": "noisy",
+        "n_act": 6,
+        "n_hidden": 128,
+        "n_input": 39,
+        "sigma_0": 0.5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T14:57:51+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_round": 70,
+        "final": {
+          "buf_pos": 10114,
+          "buffer": 180403,
+          "causes": {
+            "hydration": 37,
+            "satiation": 11
+          },
+          "discoveries": 70,
+          "eval_deaths": 48,
+          "explorer_calls": 9038,
+          "new_pos": 218,
+          "new_trans": 2720,
+          "round": 70,
+          "solveScore": 0.21311475409836064,
+          "train_discoveries": 34
+        },
+        "history": [
+          {
+            "buf_pos": 1554,
+            "buffer": 29362,
+            "causes": {
+              "both": 3,
+              "hydration": 137,
+              "satiation": 27
+            },
+            "disc_per_life": 0.4491017964071856,
+            "discoveries": 75,
+            "eval_deaths": 167,
+            "explorer_calls": 19715,
+            "new_pos": 282,
+            "new_trans": 3000,
+            "round": 10,
+            "solveScore": 0.023391812865497075,
+            "train_discoveries": 39
+          },
+          {
+            "buf_pos": 3140,
+            "buffer": 56932,
+            "causes": {
+              "hydration": 90,
+              "satiation": 26
+            },
+            "disc_per_life": 0.8275862068965517,
+            "discoveries": 96,
+            "eval_deaths": 116,
+            "explorer_calls": 15323,
+            "new_pos": 279,
+            "new_trans": 3000,
+            "round": 20,
+            "solveScore": 0.04132231404958678,
+            "train_discoveries": 39
+          },
+          {
+            "buf_pos": 4678,
+            "buffer": 83599,
+            "causes": {
+              "hydration": 42,
+              "satiation": 20
+            },
+            "disc_per_life": 1.4516129032258065,
+            "discoveries": 90,
+            "eval_deaths": 62,
+            "explorer_calls": 9292,
+            "new_pos": 139,
+            "new_trans": 3000,
+            "round": 30,
+            "solveScore": 0.16216216216216217,
+            "train_discoveries": 24
+          },
+          {
+            "buf_pos": 6307,
+            "buffer": 111394,
+            "causes": {
+              "hydration": 65,
+              "satiation": 15
+            },
+            "disc_per_life": 1.1,
+            "discoveries": 88,
+            "eval_deaths": 80,
+            "explorer_calls": 10429,
+            "new_pos": 78,
+            "new_trans": 2818,
+            "round": 40,
+            "solveScore": 0.1111111111111111,
+            "train_discoveries": 18
+          },
+          {
+            "buf_pos": 7695,
+            "buffer": 137042,
+            "causes": {
+              "hydration": 58,
+              "satiation": 20
+            },
+            "disc_per_life": 1.0769230769230769,
+            "discoveries": 84,
+            "eval_deaths": 78,
+            "explorer_calls": 9881,
+            "new_pos": 109,
+            "new_trans": 2348,
+            "round": 50,
+            "solveScore": 0.11363636363636363,
+            "train_discoveries": 22
+          },
+          {
+            "buf_pos": 8876,
+            "buffer": 159976,
+            "causes": {
+              "hydration": 50,
+              "satiation": 31
+            },
+            "disc_per_life": 1.2962962962962963,
+            "discoveries": 105,
+            "eval_deaths": 81,
+            "explorer_calls": 11565,
+            "new_pos": 44,
+            "new_trans": 1375,
+            "round": 60,
+            "solveScore": 0.1,
+            "train_discoveries": 14
+          },
+          {
+            "buf_pos": 10114,
+            "buffer": 180403,
+            "causes": {
+              "hydration": 37,
+              "satiation": 11
+            },
+            "disc_per_life": 1.4583333333333333,
+            "discoveries": 70,
+            "eval_deaths": 48,
+            "explorer_calls": 9038,
+            "new_pos": 218,
+            "new_trans": 2720,
+            "round": 70,
+            "solveScore": 0.21311475409836064,
+            "train_discoveries": 34
+          },
+          {
+            "buf_pos": 12012,
+            "buffer": 207356,
+            "causes": {
+              "hydration": 25,
+              "satiation": 23
+            },
+            "disc_per_life": 2.1875,
+            "discoveries": 105,
+            "eval_deaths": 48,
+            "explorer_calls": 9352,
+            "new_pos": 155,
+            "new_trans": 2801,
+            "round": 80,
+            "solveScore": 0.1724137931034483,
+            "train_discoveries": 27
+          }
+        ],
+        "last": {
+          "causes": {
+            "hydration": 25,
+            "satiation": 23
+          },
+          "discoveries": 105,
+          "eval_deaths": 48,
+          "explorer_calls": 9352,
+          "solveScore": 0.1724137931034483
+        }
+      },
+      "module_kind": "explorer",
+      "notes": "Thesis run. Smell 3, dead band intact, cold start, both resources.",
+      "obs_fields": [
+        "legal_0",
+        "legal_1",
+        "legal_2",
+        "legal_3",
+        "legal_4",
+        "legal_5",
+        "act0_0",
+        "act0_1",
+        "act0_2",
+        "act0_3",
+        "act0_4",
+        "act0_5",
+        "act1_0",
+        "act1_1",
+        "act1_2",
+        "act1_3",
+        "act1_4",
+        "act1_5",
+        "act2_0",
+        "act2_1",
+        "act2_2",
+        "act2_3",
+        "act2_4",
+        "act2_5",
+        "act0_valid",
+        "act1_valid",
+        "act2_valid",
+        "w0",
+        "w1",
+        "w2",
+        "w_d1",
+        "w_d2",
+        "f0",
+        "f1",
+        "f2",
+        "f_d1",
+        "f_d2",
+        "need_water",
+        "need_food"
+      ],
+      "tag": "f0",
+      "train_config": {
+        "band": [
+          9,
+          11
+        ],
+        "batch_size": 128,
+        "buffer_size": 300000,
+        "cap_per_round": 3000,
+        "death_penalty": 10.0,
+        "discover_reward": 10.0,
+        "eval_len": 5000,
+        "eval_seeds": [
+          10001,
+          10002,
+          10003,
+          10004
+        ],
+        "gamma": 0.99,
+        "god_ceiling": 1.0,
+        "lr": 0.0005,
+        "n_hidden": 128,
+        "n_step": 10,
+        "pos_frac": 0.25,
+        "reactive_floor": 0.48,
+        "reward": "sparse on discovery (explore->GO_* transition), no smell shaping",
+        "rig": "insim_rig_v1 (iterated batch off-policy)",
+        "rounds": 80,
+        "sampling": "stratified: all rewarded transitions kept, pos_frac per batch",
+        "sim_len": 7000,
+        "smell_radius": 3,
+        "step_cost": 0.02,
+        "target_sync": 250,
+        "updates_per_round": 500,
+        "warmup": 2000
+      },
+      "train_seed": 0
+    },
+    "explorer/f1": {
+      "arch": {
+        "kind": "noisy",
+        "n_act": 6,
+        "n_hidden": 128,
+        "n_input": 39,
+        "sigma_0": 0.5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T15:02:42+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_round": 60,
+        "final": {
+          "buf_pos": 8892,
+          "buffer": 167277,
+          "causes": {
+            "hydration": 40,
+            "satiation": 22
+          },
+          "discoveries": 93,
+          "eval_deaths": 62,
+          "explorer_calls": 9471,
+          "new_pos": 196,
+          "new_trans": 3000,
+          "round": 60,
+          "solveScore": 0.1388888888888889,
+          "train_discoveries": 33
+        },
+        "history": [
+          {
+            "buf_pos": 1388,
+            "buffer": 28979,
+            "causes": {
+              "both": 1,
+              "hydration": 89,
+              "satiation": 25
+            },
+            "disc_per_life": 0.8,
+            "discoveries": 92,
+            "eval_deaths": 115,
+            "explorer_calls": 14411,
+            "new_pos": 89,
+            "new_trans": 2724,
+            "round": 10,
+            "solveScore": 0.049586776859504134,
+            "train_discoveries": 17
+          },
+          {
+            "buf_pos": 2680,
+            "buffer": 54871,
+            "causes": {
+              "hydration": 80,
+              "satiation": 24
+            },
+            "disc_per_life": 0.7980769230769231,
+            "discoveries": 83,
+            "eval_deaths": 104,
+            "explorer_calls": 12597,
+            "new_pos": 263,
+            "new_trans": 2610,
+            "round": 20,
+            "solveScore": 0.07142857142857142,
+            "train_discoveries": 37
+          },
+          {
+            "buf_pos": 4415,
+            "buffer": 83801,
+            "causes": {
+              "hydration": 108,
+              "satiation": 46
+            },
+            "disc_per_life": 0.6428571428571429,
+            "discoveries": 99,
+            "eval_deaths": 154,
+            "explorer_calls": 17299,
+            "new_pos": 85,
+            "new_trans": 2983,
+            "round": 30,
+            "solveScore": 0.01910828025477707,
+            "train_discoveries": 16
+          },
+          {
+            "buf_pos": 6010,
+            "buffer": 112115,
+            "causes": {
+              "hydration": 101,
+              "satiation": 25
+            },
+            "disc_per_life": 0.6904761904761905,
+            "discoveries": 87,
+            "eval_deaths": 126,
+            "explorer_calls": 14021,
+            "new_pos": 61,
+            "new_trans": 2889,
+            "round": 40,
+            "solveScore": 0.045454545454545456,
+            "train_discoveries": 12
+          },
+          {
+            "buf_pos": 7547,
+            "buffer": 139031,
+            "causes": {
+              "hydration": 60,
+              "satiation": 21
+            },
+            "disc_per_life": 1.123456790123457,
+            "discoveries": 91,
+            "eval_deaths": 81,
+            "explorer_calls": 10971,
+            "new_pos": 75,
+            "new_trans": 2346,
+            "round": 50,
+            "solveScore": 0.1,
+            "train_discoveries": 16
+          },
+          {
+            "buf_pos": 8892,
+            "buffer": 167277,
+            "causes": {
+              "hydration": 40,
+              "satiation": 22
+            },
+            "disc_per_life": 1.5,
+            "discoveries": 93,
+            "eval_deaths": 62,
+            "explorer_calls": 9471,
+            "new_pos": 196,
+            "new_trans": 3000,
+            "round": 60,
+            "solveScore": 0.1388888888888889,
+            "train_discoveries": 33
+          },
+          {
+            "buf_pos": 10566,
+            "buffer": 194658,
+            "causes": {
+              "both": 1,
+              "hydration": 53,
+              "satiation": 26
+            },
+            "disc_per_life": 1.1,
+            "discoveries": 88,
+            "eval_deaths": 80,
+            "explorer_calls": 10650,
+            "new_pos": 219,
+            "new_trans": 3000,
+            "round": 70,
+            "solveScore": 0.10112359550561797,
+            "train_discoveries": 34
+          },
+          {
+            "buf_pos": 12201,
+            "buffer": 221209,
+            "causes": {
+              "hydration": 60,
+              "satiation": 22
+            },
+            "disc_per_life": 1.0853658536585367,
+            "discoveries": 89,
+            "eval_deaths": 82,
+            "explorer_calls": 11725,
+            "new_pos": 54,
+            "new_trans": 2002,
+            "round": 80,
+            "solveScore": 0.10869565217391304,
+            "train_discoveries": 15
+          }
+        ],
+        "last": {
+          "causes": {
+            "hydration": 60,
+            "satiation": 22
+          },
+          "discoveries": 89,
+          "eval_deaths": 82,
+          "explorer_calls": 11725,
+          "solveScore": 0.10869565217391304
+        }
+      },
+      "module_kind": "explorer",
+      "notes": "Thesis run. Smell 3, dead band intact, cold start, both resources.",
+      "obs_fields": [
+        "legal_0",
+        "legal_1",
+        "legal_2",
+        "legal_3",
+        "legal_4",
+        "legal_5",
+        "act0_0",
+        "act0_1",
+        "act0_2",
+        "act0_3",
+        "act0_4",
+        "act0_5",
+        "act1_0",
+        "act1_1",
+        "act1_2",
+        "act1_3",
+        "act1_4",
+        "act1_5",
+        "act2_0",
+        "act2_1",
+        "act2_2",
+        "act2_3",
+        "act2_4",
+        "act2_5",
+        "act0_valid",
+        "act1_valid",
+        "act2_valid",
+        "w0",
+        "w1",
+        "w2",
+        "w_d1",
+        "w_d2",
+        "f0",
+        "f1",
+        "f2",
+        "f_d1",
+        "f_d2",
+        "need_water",
+        "need_food"
+      ],
+      "tag": "f1",
+      "train_config": {
+        "band": [
+          9,
+          11
+        ],
+        "batch_size": 128,
+        "buffer_size": 300000,
+        "cap_per_round": 3000,
+        "death_penalty": 10.0,
+        "discover_reward": 10.0,
+        "eval_len": 5000,
+        "eval_seeds": [
+          10001,
+          10002,
+          10003,
+          10004
+        ],
+        "gamma": 0.99,
+        "god_ceiling": 1.0,
+        "lr": 0.0005,
+        "n_hidden": 128,
+        "n_step": 10,
+        "pos_frac": 0.25,
+        "reactive_floor": 0.48,
+        "reward": "sparse on discovery (explore->GO_* transition), no smell shaping",
+        "rig": "insim_rig_v1 (iterated batch off-policy)",
+        "rounds": 80,
+        "sampling": "stratified: all rewarded transitions kept, pos_frac per batch",
+        "sim_len": 7000,
+        "smell_radius": 3,
+        "step_cost": 0.02,
+        "target_sync": 250,
+        "updates_per_round": 500,
+        "warmup": 2000
+      },
+      "train_seed": 1
+    },
+    "explorer/f2": {
+      "arch": {
+        "kind": "noisy",
+        "n_act": 6,
+        "n_hidden": 128,
+        "n_input": 39,
+        "sigma_0": 0.5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T15:07:38+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_round": 30,
+        "final": {
+          "buf_pos": 4455,
+          "buffer": 89377,
+          "causes": {
+            "both": 1,
+            "hydration": 46,
+            "satiation": 24
+          },
+          "discoveries": 108,
+          "eval_deaths": 71,
+          "explorer_calls": 12832,
+          "new_pos": 151,
+          "new_trans": 2886,
+          "round": 30,
+          "solveScore": 0.10126582278481013,
+          "train_discoveries": 26
+        },
+        "history": [
+          {
+            "buf_pos": 1163,
+            "buffer": 30000,
+            "causes": {
+              "hydration": 81,
+              "satiation": 23
+            },
+            "disc_per_life": 0.9423076923076923,
+            "discoveries": 98,
+            "eval_deaths": 104,
+            "explorer_calls": 13318,
+            "new_pos": 128,
+            "new_trans": 3000,
+            "round": 10,
+            "solveScore": 0.06306306306306306,
+            "train_discoveries": 23
+          },
+          {
+            "buf_pos": 2716,
+            "buffer": 59551,
+            "causes": {
+              "hydration": 88,
+              "satiation": 19
+            },
+            "disc_per_life": 0.5607476635514018,
+            "discoveries": 60,
+            "eval_deaths": 107,
+            "explorer_calls": 12248,
+            "new_pos": 114,
+            "new_trans": 3000,
+            "round": 20,
+            "solveScore": 0.06140350877192982,
+            "train_discoveries": 20
+          },
+          {
+            "buf_pos": 4455,
+            "buffer": 89377,
+            "causes": {
+              "both": 1,
+              "hydration": 46,
+              "satiation": 24
+            },
+            "disc_per_life": 1.5211267605633803,
+            "discoveries": 108,
+            "eval_deaths": 71,
+            "explorer_calls": 12832,
+            "new_pos": 151,
+            "new_trans": 2886,
+            "round": 30,
+            "solveScore": 0.10126582278481013,
+            "train_discoveries": 26
+          },
+          {
+            "buf_pos": 6370,
+            "buffer": 116310,
+            "causes": {
+              "both": 1,
+              "hydration": 56,
+              "satiation": 34
+            },
+            "disc_per_life": 1.3626373626373627,
+            "discoveries": 124,
+            "eval_deaths": 91,
+            "explorer_calls": 14046,
+            "new_pos": 316,
+            "new_trans": 3000,
+            "round": 40,
+            "solveScore": 0.07142857142857142,
+            "train_discoveries": 40
+          },
+          {
+            "buf_pos": 8483,
+            "buffer": 144940,
+            "causes": {
+              "hydration": 86,
+              "satiation": 42
+            },
+            "disc_per_life": 0.890625,
+            "discoveries": 114,
+            "eval_deaths": 128,
+            "explorer_calls": 17800,
+            "new_pos": 257,
+            "new_trans": 3000,
+            "round": 50,
+            "solveScore": 0.03759398496240601,
+            "train_discoveries": 35
+          },
+          {
+            "buf_pos": 9892,
+            "buffer": 170457,
+            "causes": {
+              "hydration": 63,
+              "satiation": 38
+            },
+            "disc_per_life": 1.0594059405940595,
+            "discoveries": 107,
+            "eval_deaths": 101,
+            "explorer_calls": 13893,
+            "new_pos": 32,
+            "new_trans": 1298,
+            "round": 60,
+            "solveScore": 0.06481481481481481,
+            "train_discoveries": 11
+          },
+          {
+            "buf_pos": 11923,
+            "buffer": 199444,
+            "causes": {
+              "both": 1,
+              "hydration": 75,
+              "satiation": 31
+            },
+            "disc_per_life": 1.0373831775700935,
+            "discoveries": 111,
+            "eval_deaths": 107,
+            "explorer_calls": 14232,
+            "new_pos": 224,
+            "new_trans": 3000,
+            "round": 70,
+            "solveScore": 0.05309734513274336,
+            "train_discoveries": 29
+          },
+          {
+            "buf_pos": 13968,
+            "buffer": 227113,
+            "causes": {
+              "hydration": 44,
+              "satiation": 40
+            },
+            "disc_per_life": 1.7976190476190477,
+            "discoveries": 151,
+            "eval_deaths": 84,
+            "explorer_calls": 16402,
+            "new_pos": 308,
+            "new_trans": 3000,
+            "round": 80,
+            "solveScore": 0.056179775280898875,
+            "train_discoveries": 39
+          }
+        ],
+        "last": {
+          "causes": {
+            "hydration": 44,
+            "satiation": 40
+          },
+          "discoveries": 151,
+          "eval_deaths": 84,
+          "explorer_calls": 16402,
+          "solveScore": 0.056179775280898875
+        }
+      },
+      "module_kind": "explorer",
+      "notes": "Thesis run. Smell 3, dead band intact, cold start, both resources.",
+      "obs_fields": [
+        "legal_0",
+        "legal_1",
+        "legal_2",
+        "legal_3",
+        "legal_4",
+        "legal_5",
+        "act0_0",
+        "act0_1",
+        "act0_2",
+        "act0_3",
+        "act0_4",
+        "act0_5",
+        "act1_0",
+        "act1_1",
+        "act1_2",
+        "act1_3",
+        "act1_4",
+        "act1_5",
+        "act2_0",
+        "act2_1",
+        "act2_2",
+        "act2_3",
+        "act2_4",
+        "act2_5",
+        "act0_valid",
+        "act1_valid",
+        "act2_valid",
+        "w0",
+        "w1",
+        "w2",
+        "w_d1",
+        "w_d2",
+        "f0",
+        "f1",
+        "f2",
+        "f_d1",
+        "f_d2",
+        "need_water",
+        "need_food"
+      ],
+      "tag": "f2",
+      "train_config": {
+        "band": [
+          9,
+          11
+        ],
+        "batch_size": 128,
+        "buffer_size": 300000,
+        "cap_per_round": 3000,
+        "death_penalty": 10.0,
+        "discover_reward": 10.0,
+        "eval_len": 5000,
+        "eval_seeds": [
+          10001,
+          10002,
+          10003,
+          10004
+        ],
+        "gamma": 0.99,
+        "god_ceiling": 1.0,
+        "lr": 0.0005,
+        "n_hidden": 128,
+        "n_step": 10,
+        "pos_frac": 0.25,
+        "reactive_floor": 0.48,
+        "reward": "sparse on discovery (explore->GO_* transition), no smell shaping",
+        "rig": "insim_rig_v1 (iterated batch off-policy)",
+        "rounds": 80,
+        "sampling": "stratified: all rewarded transitions kept, pos_frac per batch",
+        "sim_len": 7000,
+        "smell_radius": 3,
+        "step_cost": 0.02,
+        "target_sync": 250,
+        "updates_per_round": 500,
+        "warmup": 2000
+      },
+      "train_seed": 2
+    },
+    "explorer/g0": {
+      "arch": {
+        "kind": "noisy",
+        "n_act": 6,
+        "n_hidden": 128,
+        "n_input": 39,
+        "sigma_0": 0.5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T15:31:25+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_round": 70,
+        "final": {
+          "buf_pos": 15446,
+          "buffer": 196408,
+          "causes": {
+            "both": 1,
+            "hydration": 20,
+            "satiation": 14
+          },
+          "discoveries": 86,
+          "eval_deaths": 35,
+          "explorer_calls": 7101,
+          "new_pos": 459,
+          "new_trans": 3000,
+          "round": 70,
+          "solveScore": 0.2857142857142857,
+          "train_discoveries": 50
+        },
+        "history": [
+          {
+            "buf_pos": 1904,
+            "buffer": 29571,
+            "causes": {
+              "hydration": 86,
+              "satiation": 33
+            },
+            "disc_per_life": 0.7983193277310925,
+            "discoveries": 95,
+            "eval_deaths": 119,
+            "explorer_calls": 14199,
+            "new_pos": 186,
+            "new_trans": 3000,
+            "round": 10,
+            "solveScore": 0.048,
+            "train_discoveries": 23
+          },
+          {
+            "buf_pos": 3680,
+            "buffer": 58616,
+            "causes": {
+              "hydration": 64,
+              "satiation": 25
+            },
+            "disc_per_life": 1.1235955056179776,
+            "discoveries": 100,
+            "eval_deaths": 89,
+            "explorer_calls": 12192,
+            "new_pos": 269,
+            "new_trans": 3000,
+            "round": 20,
+            "solveScore": 0.08247422680412371,
+            "train_discoveries": 33
+          },
+          {
+            "buf_pos": 5662,
+            "buffer": 87955,
+            "causes": {
+              "hydration": 71,
+              "satiation": 33
+            },
+            "disc_per_life": 0.875,
+            "discoveries": 91,
+            "eval_deaths": 104,
+            "explorer_calls": 14787,
+            "new_pos": 131,
+            "new_trans": 2510,
+            "round": 30,
+            "solveScore": 0.05454545454545454,
+            "train_discoveries": 19
+          },
+          {
+            "buf_pos": 8058,
+            "buffer": 115371,
+            "causes": {
+              "hydration": 56,
+              "satiation": 21
+            },
+            "disc_per_life": 1.077922077922078,
+            "discoveries": 83,
+            "eval_deaths": 77,
+            "explorer_calls": 10464,
+            "new_pos": 210,
+            "new_trans": 2989,
+            "round": 40,
+            "solveScore": 0.11494252873563218,
+            "train_discoveries": 26
+          },
+          {
+            "buf_pos": 10218,
+            "buffer": 142753,
+            "causes": {
+              "hydration": 54,
+              "satiation": 17
+            },
+            "disc_per_life": 1.7183098591549295,
+            "discoveries": 122,
+            "eval_deaths": 71,
+            "explorer_calls": 12502,
+            "new_pos": 154,
+            "new_trans": 2890,
+            "round": 50,
+            "solveScore": 0.1125,
+            "train_discoveries": 24
+          },
+          {
+            "buf_pos": 12470,
+            "buffer": 170809,
+            "causes": {
+              "hydration": 63,
+              "satiation": 32
+            },
+            "disc_per_life": 1.4421052631578948,
+            "discoveries": 137,
+            "eval_deaths": 95,
+            "explorer_calls": 15174,
+            "new_pos": 288,
+            "new_trans": 2474,
+            "round": 60,
+            "solveScore": 0.0594059405940594,
+            "train_discoveries": 34
+          },
+          {
+            "buf_pos": 15446,
+            "buffer": 196408,
+            "causes": {
+              "both": 1,
+              "hydration": 20,
+              "satiation": 14
+            },
+            "disc_per_life": 2.4571428571428573,
+            "discoveries": 86,
+            "eval_deaths": 35,
+            "explorer_calls": 7101,
+            "new_pos": 459,
+            "new_trans": 3000,
+            "round": 70,
+            "solveScore": 0.2857142857142857,
+            "train_discoveries": 50
+          },
+          {
+            "buf_pos": 17294,
+            "buffer": 219832,
+            "causes": {
+              "both": 1,
+              "hydration": 52,
+              "satiation": 22
+            },
+            "disc_per_life": 1.7866666666666666,
+            "discoveries": 134,
+            "eval_deaths": 75,
+            "explorer_calls": 12380,
+            "new_pos": 272,
+            "new_trans": 2065,
+            "round": 80,
+            "solveScore": 0.0963855421686747,
+            "train_discoveries": 33
+          }
+        ],
+        "last": {
+          "causes": {
+            "both": 1,
+            "hydration": 52,
+            "satiation": 22
+          },
+          "discoveries": 134,
+          "eval_deaths": 75,
+          "explorer_calls": 12380,
+          "solveScore": 0.0963855421686747
+        }
+      },
+      "module_kind": "explorer",
+      "notes": "Thesis run. Smell 3, dead band intact, cold start, both resources.",
+      "obs_fields": [
+        "legal_0",
+        "legal_1",
+        "legal_2",
+        "legal_3",
+        "legal_4",
+        "legal_5",
+        "act0_0",
+        "act0_1",
+        "act0_2",
+        "act0_3",
+        "act0_4",
+        "act0_5",
+        "act1_0",
+        "act1_1",
+        "act1_2",
+        "act1_3",
+        "act1_4",
+        "act1_5",
+        "act2_0",
+        "act2_1",
+        "act2_2",
+        "act2_3",
+        "act2_4",
+        "act2_5",
+        "act0_valid",
+        "act1_valid",
+        "act2_valid",
+        "w0",
+        "w1",
+        "w2",
+        "w_d1",
+        "w_d2",
+        "f0",
+        "f1",
+        "f2",
+        "f_d1",
+        "f_d2",
+        "need_water",
+        "need_food"
+      ],
+      "tag": "g0",
+      "train_config": {
+        "band": [
+          9,
+          11
+        ],
+        "batch_size": 128,
+        "buffer_size": 300000,
+        "cap_per_round": 3000,
+        "death_penalty": 10.0,
+        "discover_reward": 10.0,
+        "eval_len": 5000,
+        "eval_seeds": [
+          10001,
+          10002,
+          10003,
+          10004
+        ],
+        "gamma": 0.99,
+        "god_ceiling": 1.0,
+        "lr": 0.0005,
+        "n_hidden": 128,
+        "n_step": 10,
+        "pos_frac": 0.25,
+        "reactive_floor": 0.48,
+        "reward": "sparse on discovery (explore->GO_* transition), no smell shaping",
+        "rig": "insim_rig_v1 (iterated batch off-policy)",
+        "rounds": 80,
+        "sampling": "stratified: all rewarded transitions kept, pos_frac per batch",
+        "sim_len": 7000,
+        "smell_radius": 3,
+        "step_cost": 0.02,
+        "target_sync": 250,
+        "updates_per_round": 500,
+        "warmup": 2000
+      },
+      "train_seed": 0
+    },
+    "explorer/p0": {
+      "arch": {
+        "kind": "policy",
+        "n_act": 6,
+        "n_hidden": 128,
+        "n_input": 39
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T15:46:23+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_round": 70,
+        "final": {
+          "discoveries": 126,
+          "entropy": 1.7358472347259521,
+          "eval_deaths": 109,
+          "n_trans": 6740,
+          "round": 70,
+          "solveScore": 0.1865671641791045,
+          "train_discoveries": 50
+        },
+        "history": [
+          {
+            "discoveries": 141,
+            "entropy": 1.7566508054733276,
+            "eval_deaths": 121,
+            "n_trans": 7966,
+            "round": 10,
+            "solveScore": 0.16551724137931034,
+            "train_discoveries": 61
+          },
+          {
+            "discoveries": 141,
+            "entropy": 1.707925796508789,
+            "eval_deaths": 148,
+            "n_trans": 7102,
+            "round": 20,
+            "solveScore": 0.1242603550295858,
+            "train_discoveries": 44
+          },
+          {
+            "discoveries": 146,
+            "entropy": 1.709604263305664,
+            "eval_deaths": 129,
+            "n_trans": 7385,
+            "round": 30,
+            "solveScore": 0.1456953642384106,
+            "train_discoveries": 50
+          },
+          {
+            "discoveries": 141,
+            "entropy": 1.752572774887085,
+            "eval_deaths": 140,
+            "n_trans": 8009,
+            "round": 40,
+            "solveScore": 0.13043478260869565,
+            "train_discoveries": 63
+          },
+          {
+            "discoveries": 148,
+            "entropy": 1.762458324432373,
+            "eval_deaths": 133,
+            "n_trans": 7136,
+            "round": 50,
+            "solveScore": 0.15286624203821655,
+            "train_discoveries": 44
+          },
+          {
+            "discoveries": 139,
+            "entropy": 1.726332187652588,
+            "eval_deaths": 142,
+            "n_trans": 5792,
+            "round": 60,
+            "solveScore": 0.12883435582822086,
+            "train_discoveries": 40
+          },
+          {
+            "discoveries": 126,
+            "entropy": 1.7358472347259521,
+            "eval_deaths": 109,
+            "n_trans": 6740,
+            "round": 70,
+            "solveScore": 0.1865671641791045,
+            "train_discoveries": 50
+          },
+          {
+            "discoveries": 127,
+            "entropy": 1.7488560676574707,
+            "eval_deaths": 137,
+            "n_trans": 6789,
+            "round": 80,
+            "solveScore": 0.15432098765432098,
+            "train_discoveries": 59
+          }
+        ],
+        "last": {
+          "discoveries": 127,
+          "eval_deaths": 137,
+          "solveScore": 0.15432098765432098
+        }
+      },
+      "module_kind": "explorer",
+      "notes": "Policy gradient. Load with policy_mode=True.",
+      "obs_fields": [
+        "legal_0",
+        "legal_1",
+        "legal_2",
+        "legal_3",
+        "legal_4",
+        "legal_5",
+        "act0_0",
+        "act0_1",
+        "act0_2",
+        "act0_3",
+        "act0_4",
+        "act0_5",
+        "act1_0",
+        "act1_1",
+        "act1_2",
+        "act1_3",
+        "act1_4",
+        "act1_5",
+        "act2_0",
+        "act2_1",
+        "act2_2",
+        "act2_3",
+        "act2_4",
+        "act2_5",
+        "act0_valid",
+        "act1_valid",
+        "act2_valid",
+        "w0",
+        "w1",
+        "w2",
+        "w_d1",
+        "w_d2",
+        "f0",
+        "f1",
+        "f2",
+        "f_d1",
+        "f_d2",
+        "need_water",
+        "need_food"
+      ],
+      "tag": "p0",
+      "train_config": {
+        "algo": "REINFORCE + value baseline + entropy bonus, MC returns (no bootstrap)",
+        "band": [
+          9,
+          11
+        ],
+        "death_penalty": 10.0,
+        "discover_reward": 10.0,
+        "entropy_beta": 0.02,
+        "episodes_per_round": 3,
+        "epochs_per_round": 4,
+        "eval_len": 5000,
+        "eval_seeds": [
+          10001,
+          10002,
+          10003,
+          10004,
+          10005,
+          10006,
+          10007,
+          10008
+        ],
+        "gamma": 0.99,
+        "lr": 0.0003,
+        "minibatch": 512,
+        "n_hidden": 128,
+        "policy_mode": true,
+        "reward": "sparse on discovery, terminal on discovery, no smell shaping",
+        "rounds": 80,
+        "sim_len": 7000,
+        "smell_radius": 3,
+        "step_cost": 0.02,
+        "value_coef": 0.5
+      },
+      "train_seed": 0
+    },
+    "explorer/p1": {
+      "arch": {
+        "kind": "policy",
+        "n_act": 6,
+        "n_hidden": 128,
+        "n_input": 39
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T16:16:58+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_round": 20,
+        "final": {
+          "discoveries": 177,
+          "entropy": 0.6297746896743774,
+          "eval_deaths": 204,
+          "n_trans": 13157,
+          "round": 20,
+          "solveScore": 0.0684931506849315,
+          "train_discoveries": 104
+        },
+        "history": [
+          {
+            "discoveries": 181,
+            "entropy": 0.00013456838496495038,
+            "eval_deaths": 226,
+            "n_trans": 24419,
+            "round": 10,
+            "solveScore": 0.0423728813559322,
+            "train_discoveries": 120
+          },
+          {
+            "discoveries": 177,
+            "entropy": 0.6297746896743774,
+            "eval_deaths": 204,
+            "n_trans": 13157,
+            "round": 20,
+            "solveScore": 0.0684931506849315,
+            "train_discoveries": 104
+          },
+          {
+            "discoveries": 154,
+            "entropy": 0.0016052185092121363,
+            "eval_deaths": 274,
+            "n_trans": 22597,
+            "round": 30,
+            "solveScore": 0.03859649122807018,
+            "train_discoveries": 110
+          },
+          {
+            "discoveries": 152,
+            "entropy": 2.4002948066648155e-12,
+            "eval_deaths": 281,
+            "n_trans": 19492,
+            "round": 40,
+            "solveScore": 0.03767123287671233,
+            "train_discoveries": 91
+          },
+          {
+            "discoveries": 152,
+            "entropy": 9.33189483021124e-07,
+            "eval_deaths": 281,
+            "n_trans": 24735,
+            "round": 50,
+            "solveScore": 0.03767123287671233,
+            "train_discoveries": 141
+          },
+          {
+            "discoveries": 152,
+            "entropy": 0.0,
+            "eval_deaths": 281,
+            "n_trans": 12135,
+            "round": 60,
+            "solveScore": 0.03767123287671233,
+            "train_discoveries": 106
+          },
+          {
+            "discoveries": 152,
+            "entropy": 0.0,
+            "eval_deaths": 281,
+            "n_trans": 22491,
+            "round": 70,
+            "solveScore": 0.03767123287671233,
+            "train_discoveries": 127
+          },
+          {
+            "discoveries": 152,
+            "entropy": 0.0,
+            "eval_deaths": 281,
+            "n_trans": 21639,
+            "round": 80,
+            "solveScore": 0.03767123287671233,
+            "train_discoveries": 124
+          }
+        ],
+        "last": {
+          "discoveries": 152,
+          "eval_deaths": 281,
+          "solveScore": 0.03767123287671233
+        }
+      },
+      "module_kind": "explorer",
+      "notes": "Policy gradient. Load with policy_mode=True.",
+      "obs_fields": [
+        "legal_0",
+        "legal_1",
+        "legal_2",
+        "legal_3",
+        "legal_4",
+        "legal_5",
+        "act0_0",
+        "act0_1",
+        "act0_2",
+        "act0_3",
+        "act0_4",
+        "act0_5",
+        "act1_0",
+        "act1_1",
+        "act1_2",
+        "act1_3",
+        "act1_4",
+        "act1_5",
+        "act2_0",
+        "act2_1",
+        "act2_2",
+        "act2_3",
+        "act2_4",
+        "act2_5",
+        "act0_valid",
+        "act1_valid",
+        "act2_valid",
+        "w0",
+        "w1",
+        "w2",
+        "w_d1",
+        "w_d2",
+        "f0",
+        "f1",
+        "f2",
+        "f_d1",
+        "f_d2",
+        "need_water",
+        "need_food"
+      ],
+      "tag": "p1",
+      "train_config": {
+        "algo": "REINFORCE + value baseline + entropy bonus, MC returns (no bootstrap)",
+        "band": [
+          9,
+          11
+        ],
+        "death_penalty": 10.0,
+        "discover_reward": 10.0,
+        "entropy_beta": 0.003,
+        "episodes_per_round": 5,
+        "epochs_per_round": 4,
+        "eval_len": 5000,
+        "eval_seeds": [
+          10001,
+          10002,
+          10003,
+          10004,
+          10005,
+          10006,
+          10007,
+          10008
+        ],
+        "gamma": 0.99,
+        "lr": 0.001,
+        "minibatch": 512,
+        "n_hidden": 128,
+        "policy_mode": true,
+        "reward": "sparse on discovery, terminal on discovery, no smell shaping",
+        "rounds": 80,
+        "sim_len": 7000,
+        "smell_radius": 3,
+        "step_cost": 0.02,
+        "value_coef": 0.5
+      },
+      "train_seed": 0
+    },
+    "pathfinder/__probe_tmp__": {
+      "arch": {
+        "kind": "mlp",
+        "n_act": 6,
+        "n_hidden": 8,
+        "n_input": 5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T15:37:38+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "probe": true
+      },
+      "module_kind": "pathfinder",
+      "notes": "probe artefact",
+      "obs_fields": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e"
+      ],
+      "tag": "__probe_tmp__",
+      "train_config": {
+        "probe": true
+      },
+      "train_seed": 0
+    },
+    "pathfinder/s0b": {
+      "arch": {
+        "kind": "mlp",
+        "n_act": 6,
+        "n_hidden": 64,
+        "n_input": 5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T13:58:15+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_episode": 3000,
+        "final": {
+          "arrival_rate": 0.996,
+          "path_efficiency": 0.9988029302643833
+        },
+        "history": [
+          {
+            "arrival_rate": 0.95,
+            "buffer": 200000,
+            "episode": 500,
+            "epsilon": 0.36,
+            "path_efficiency": 0.9609198583137907
+          },
+          {
+            "arrival_rate": 0.99,
+            "buffer": 200000,
+            "episode": 1000,
+            "epsilon": 0.219,
+            "path_efficiency": 0.9686271276359711
+          },
+          {
+            "arrival_rate": 0.985,
+            "buffer": 200000,
+            "episode": 1500,
+            "epsilon": 0.078,
+            "path_efficiency": 0.9882139358598132
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 2000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9780963141223018
+          },
+          {
+            "arrival_rate": 0.535,
+            "buffer": 200000,
+            "episode": 2500,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9720166070330689
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 3000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9982908199643493
+          },
+          {
+            "arrival_rate": 0.965,
+            "buffer": 200000,
+            "episode": 3500,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9968207953284621
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 4000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9798757076388168
+          }
+        ],
+        "last": {
+          "arrival_rate": 0.99,
+          "path_efficiency": 0.9759635792616698
+        }
+      },
+      "module_kind": "pathfinder",
+      "notes": "Standalone rig (no sim). Distillation-free: sparse reward + HER.",
+      "obs_fields": [
+        "dq",
+        "dr",
+        "ds",
+        "dist",
+        "on_goal"
+      ],
+      "tag": "s0b",
+      "train_config": {
+        "arrive_reward": 1.0,
+        "batch_size": 128,
+        "buffer_size": 200000,
+        "episodes": 4000,
+        "eps_end": 0.05,
+        "eps_frac": 0.4,
+        "eps_start": 0.5,
+        "gamma": 0.99,
+        "her_k": 4,
+        "lr": 0.001,
+        "n_hidden": 64,
+        "n_step": 3,
+        "radius": 20,
+        "reward": "sparse arrival + step cost, no shaping",
+        "rig": "pathfinder_rig_v1",
+        "scale": 20,
+        "step_cost": -0.01,
+        "target_sync": 500,
+        "updates_per_episode": 8,
+        "warmup": 2000
+      },
+      "train_seed": 0
+    },
+    "pathfinder/s1": {
+      "arch": {
+        "kind": "mlp",
+        "n_act": 6,
+        "n_hidden": 64,
+        "n_input": 5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T13:48:57+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "final": {
+          "arrival_rate": 0.98,
+          "path_efficiency": 0.9935079327164215
+        },
+        "history": [
+          {
+            "arrival_rate": 0.995,
+            "buffer": 200000,
+            "episode": 500,
+            "epsilon": 0.36,
+            "path_efficiency": 0.9643199722281792
+          },
+          {
+            "arrival_rate": 0.985,
+            "buffer": 200000,
+            "episode": 1000,
+            "epsilon": 0.219,
+            "path_efficiency": 0.9883923650513678
+          },
+          {
+            "arrival_rate": 0.87,
+            "buffer": 200000,
+            "episode": 1500,
+            "epsilon": 0.078,
+            "path_efficiency": 0.9775313092530717
+          },
+          {
+            "arrival_rate": 0.815,
+            "buffer": 200000,
+            "episode": 2000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.990046368195411
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 2500,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9970118006847509
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 3000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9976647748942514
+          },
+          {
+            "arrival_rate": 0.93,
+            "buffer": 200000,
+            "episode": 3500,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9936422046449532
+          },
+          {
+            "arrival_rate": 0.97,
+            "buffer": 200000,
+            "episode": 4000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9924037364252294
+          }
+        ]
+      },
+      "module_kind": "pathfinder",
+      "notes": "Standalone rig (no sim). Distillation-free: sparse reward + HER.",
+      "obs_fields": [
+        "dq",
+        "dr",
+        "ds",
+        "dist",
+        "on_goal"
+      ],
+      "tag": "s1",
+      "train_config": {
+        "arrive_reward": 1.0,
+        "batch_size": 128,
+        "buffer_size": 200000,
+        "episodes": 4000,
+        "eps_end": 0.05,
+        "eps_frac": 0.4,
+        "eps_start": 0.5,
+        "gamma": 0.99,
+        "her_k": 4,
+        "lr": 0.001,
+        "n_hidden": 64,
+        "n_step": 3,
+        "radius": 20,
+        "reward": "sparse arrival + step cost, no shaping",
+        "rig": "pathfinder_rig_v1",
+        "scale": 20,
+        "step_cost": -0.01,
+        "target_sync": 500,
+        "updates_per_episode": 8,
+        "warmup": 2000
+      },
+      "train_seed": 1
+    },
+    "pathfinder/s1b": {
+      "arch": {
+        "kind": "mlp",
+        "n_act": 6,
+        "n_hidden": 64,
+        "n_input": 5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T13:59:44+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_episode": 3000,
+        "final": {
+          "arrival_rate": 1.0,
+          "path_efficiency": 0.9975041602042948
+        },
+        "history": [
+          {
+            "arrival_rate": 0.995,
+            "buffer": 200000,
+            "episode": 500,
+            "epsilon": 0.36,
+            "path_efficiency": 0.9643199722281792
+          },
+          {
+            "arrival_rate": 0.985,
+            "buffer": 200000,
+            "episode": 1000,
+            "epsilon": 0.219,
+            "path_efficiency": 0.9883923650513678
+          },
+          {
+            "arrival_rate": 0.87,
+            "buffer": 200000,
+            "episode": 1500,
+            "epsilon": 0.078,
+            "path_efficiency": 0.9775313092530717
+          },
+          {
+            "arrival_rate": 0.815,
+            "buffer": 200000,
+            "episode": 2000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.990046368195411
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 2500,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9970118006847509
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 3000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9976647748942514
+          },
+          {
+            "arrival_rate": 0.93,
+            "buffer": 200000,
+            "episode": 3500,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9936422046449532
+          },
+          {
+            "arrival_rate": 0.97,
+            "buffer": 200000,
+            "episode": 4000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9924037364252294
+          }
+        ],
+        "last": {
+          "arrival_rate": 0.98,
+          "path_efficiency": 0.9935079327164215
+        }
+      },
+      "module_kind": "pathfinder",
+      "notes": "Standalone rig (no sim). Distillation-free: sparse reward + HER.",
+      "obs_fields": [
+        "dq",
+        "dr",
+        "ds",
+        "dist",
+        "on_goal"
+      ],
+      "tag": "s1b",
+      "train_config": {
+        "arrive_reward": 1.0,
+        "batch_size": 128,
+        "buffer_size": 200000,
+        "episodes": 4000,
+        "eps_end": 0.05,
+        "eps_frac": 0.4,
+        "eps_start": 0.5,
+        "gamma": 0.99,
+        "her_k": 4,
+        "lr": 0.001,
+        "n_hidden": 64,
+        "n_step": 3,
+        "radius": 20,
+        "reward": "sparse arrival + step cost, no shaping",
+        "rig": "pathfinder_rig_v1",
+        "scale": 20,
+        "step_cost": -0.01,
+        "target_sync": 500,
+        "updates_per_episode": 8,
+        "warmup": 2000
+      },
+      "train_seed": 1
+    },
+    "pathfinder/s2": {
+      "arch": {
+        "kind": "mlp",
+        "n_act": 6,
+        "n_hidden": 64,
+        "n_input": 5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T13:50:26+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "final": {
+          "arrival_rate": 0.734,
+          "path_efficiency": 0.9836984350032276
+        },
+        "history": [
+          {
+            "arrival_rate": 0.835,
+            "buffer": 200000,
+            "episode": 500,
+            "epsilon": 0.36,
+            "path_efficiency": 0.9839282009735026
+          },
+          {
+            "arrival_rate": 0.985,
+            "buffer": 200000,
+            "episode": 1000,
+            "epsilon": 0.219,
+            "path_efficiency": 0.9916353418100124
+          },
+          {
+            "arrival_rate": 0.94,
+            "buffer": 200000,
+            "episode": 1500,
+            "epsilon": 0.078,
+            "path_efficiency": 0.990736026974702
+          },
+          {
+            "arrival_rate": 0.96,
+            "buffer": 200000,
+            "episode": 2000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9495916550855679
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 2500,
+            "epsilon": 0.05,
+            "path_efficiency": 1.0
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 3000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9976360401725494
+          },
+          {
+            "arrival_rate": 0.985,
+            "buffer": 200000,
+            "episode": 3500,
+            "epsilon": 0.05,
+            "path_efficiency": 0.990480017759445
+          },
+          {
+            "arrival_rate": 0.785,
+            "buffer": 200000,
+            "episode": 4000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9785643347828288
+          }
+        ]
+      },
+      "module_kind": "pathfinder",
+      "notes": "Standalone rig (no sim). Distillation-free: sparse reward + HER.",
+      "obs_fields": [
+        "dq",
+        "dr",
+        "ds",
+        "dist",
+        "on_goal"
+      ],
+      "tag": "s2",
+      "train_config": {
+        "arrive_reward": 1.0,
+        "batch_size": 128,
+        "buffer_size": 200000,
+        "episodes": 4000,
+        "eps_end": 0.05,
+        "eps_frac": 0.4,
+        "eps_start": 0.5,
+        "gamma": 0.99,
+        "her_k": 4,
+        "lr": 0.001,
+        "n_hidden": 64,
+        "n_step": 3,
+        "radius": 20,
+        "reward": "sparse arrival + step cost, no shaping",
+        "rig": "pathfinder_rig_v1",
+        "scale": 20,
+        "step_cost": -0.01,
+        "target_sync": 500,
+        "updates_per_episode": 8,
+        "warmup": 2000
+      },
+      "train_seed": 2
+    },
+    "pathfinder/s2b": {
+      "arch": {
+        "kind": "mlp",
+        "n_act": 6,
+        "n_hidden": 64,
+        "n_input": 5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T13:55:41+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "best_episode": 2500,
+        "final": {
+          "arrival_rate": 1.0,
+          "path_efficiency": 1.0
+        },
+        "history": [
+          {
+            "arrival_rate": 0.835,
+            "buffer": 200000,
+            "episode": 500,
+            "epsilon": 0.36,
+            "path_efficiency": 0.9839282009735026
+          },
+          {
+            "arrival_rate": 0.985,
+            "buffer": 200000,
+            "episode": 1000,
+            "epsilon": 0.219,
+            "path_efficiency": 0.9916353418100124
+          },
+          {
+            "arrival_rate": 0.94,
+            "buffer": 200000,
+            "episode": 1500,
+            "epsilon": 0.078,
+            "path_efficiency": 0.990736026974702
+          },
+          {
+            "arrival_rate": 0.96,
+            "buffer": 200000,
+            "episode": 2000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9495916550855679
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 2500,
+            "epsilon": 0.05,
+            "path_efficiency": 1.0
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 3000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9976360401725494
+          },
+          {
+            "arrival_rate": 0.985,
+            "buffer": 200000,
+            "episode": 3500,
+            "epsilon": 0.05,
+            "path_efficiency": 0.990480017759445
+          },
+          {
+            "arrival_rate": 0.785,
+            "buffer": 200000,
+            "episode": 4000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9785643347828288
+          }
+        ],
+        "last": {
+          "arrival_rate": 0.734,
+          "path_efficiency": 0.9836984350032276
+        }
+      },
+      "module_kind": "pathfinder",
+      "notes": "Standalone rig (no sim). Distillation-free: sparse reward + HER.",
+      "obs_fields": [
+        "dq",
+        "dr",
+        "ds",
+        "dist",
+        "on_goal"
+      ],
+      "tag": "s2b",
+      "train_config": {
+        "arrive_reward": 1.0,
+        "batch_size": 128,
+        "buffer_size": 200000,
+        "episodes": 4000,
+        "eps_end": 0.05,
+        "eps_frac": 0.4,
+        "eps_start": 0.5,
+        "gamma": 0.99,
+        "her_k": 4,
+        "lr": 0.001,
+        "n_hidden": 64,
+        "n_step": 3,
+        "radius": 20,
+        "reward": "sparse arrival + step cost, no shaping",
+        "rig": "pathfinder_rig_v1",
+        "scale": 20,
+        "step_cost": -0.01,
+        "target_sync": 500,
+        "updates_per_episode": 8,
+        "warmup": 2000
+      },
+      "train_seed": 2
+    },
+    "pathfinder/v1": {
+      "arch": {
+        "kind": "mlp",
+        "n_act": 6,
+        "n_hidden": 64,
+        "n_input": 5
+      },
+      "contract_version": "v1",
+      "created": "2026-07-27T11:37:22+00:00",
+      "git_dirty": true,
+      "git_sha": "6e081ef",
+      "metrics": {
+        "final": {
+          "arrival_rate": 0.99,
+          "path_efficiency": 0.9759635792616698
+        },
+        "history": [
+          {
+            "arrival_rate": 0.95,
+            "buffer": 200000,
+            "episode": 500,
+            "epsilon": 0.36,
+            "path_efficiency": 0.9609198583137907
+          },
+          {
+            "arrival_rate": 0.99,
+            "buffer": 200000,
+            "episode": 1000,
+            "epsilon": 0.219,
+            "path_efficiency": 0.9686271276359711
+          },
+          {
+            "arrival_rate": 0.985,
+            "buffer": 200000,
+            "episode": 1500,
+            "epsilon": 0.078,
+            "path_efficiency": 0.9882139358598132
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 2000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9780963141223018
+          },
+          {
+            "arrival_rate": 0.535,
+            "buffer": 200000,
+            "episode": 2500,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9720166070330689
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 3000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9982908199643493
+          },
+          {
+            "arrival_rate": 0.965,
+            "buffer": 200000,
+            "episode": 3500,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9968207953284621
+          },
+          {
+            "arrival_rate": 1.0,
+            "buffer": 200000,
+            "episode": 4000,
+            "epsilon": 0.05,
+            "path_efficiency": 0.9798757076388168
+          }
+        ]
+      },
+      "module_kind": "pathfinder",
+      "notes": "Standalone rig (no sim). Distillation-free: sparse reward + HER.",
+      "obs_fields": [
+        "dq",
+        "dr",
+        "ds",
+        "dist",
+        "on_goal"
+      ],
+      "tag": "v1",
+      "train_config": {
+        "arrive_reward": 1.0,
+        "batch_size": 128,
+        "buffer_size": 200000,
+        "episodes": 4000,
+        "eps_end": 0.05,
+        "eps_frac": 0.4,
+        "eps_start": 0.5,
+        "gamma": 0.99,
+        "her_k": 4,
+        "lr": 0.001,
+        "n_hidden": 64,
+        "n_step": 3,
+        "radius": 20,
+        "reward": "sparse arrival + step cost, no shaping",
+        "rig": "pathfinder_rig_v1",
+        "scale": 20,
+        "step_cost": -0.01,
+        "target_sync": 500,
+        "updates_per_episode": 8,
+        "warmup": 2000
+      },
+      "train_seed": 0
+    }
+  },
+  "updated": "2026-07-27T16:16:58+00:00"
+}
