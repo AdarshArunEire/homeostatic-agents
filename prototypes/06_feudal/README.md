@@ -24,6 +24,10 @@ class a five-parameter heuristic already occupies optimally.
 | eat consumer | **untrained** — starved by construction | 0 dispatches in 1200 nondoomed ticks; finding food is the phenomenon |
 | explorer | **not learnable on this contract** | 5 methods, all at or below the random floor |
 
+<p>
+  <img src="results/best_figures/module_scoreboard.png" width="860">
+</p>
+
 ## The reframe from Proto 04
 
 **Route→rule is settled; the wall is exploration, so stop testing survival and test finding.**
@@ -47,6 +51,14 @@ diffusive so cost scales as `d²`, and the compound difficulty goes roughly as
 `(L − 2r)² / r²` — a factor of ~70 between r=3 and r=5 at L=11. The invariant is `L − 2r`,
 not `r`, so smell 5 with band (13,15) would be the *same* problem.
 
+<p>
+  <img src="results/best_figures/dead_band_geometry.png" width="900">
+  <br>
+  <sub><em>Left: sensed and blind stretches of a 10-hex commute at r=3 and r=5 — radius is
+  subtracted from both ends, so +2 removes 4. Right: blind-leg difficulty, quadratic in the blind
+  width and inverse-quadratic in detection area.</em></sub>
+</p>
+
 ## The explorer ladder
 
 Standing config, 8 seeds: smell 3, band (9,11), nondoomed with leeway 10, decay 0.7,
@@ -62,6 +74,12 @@ h_fill 1.6 / s_fill 1.3, crit 0.7. Cold start — the agent must find water, the
 GOD taking zero deaths shows the world is fair. Random at 0.17 shows the task is not trivial.
 The reactive explorer's deaths split hydration 29 / satiation 6 — genuine two-resource
 navigation, not a food-only artifact.
+
+<p>
+  <img src="results/best_figures/explorer_ladder__headline.png" width="900">
+  <br>
+  <sub><em>The reference frame, and every learned attempt against it.</em></sub>
+</p>
 
 ## Verdict per module
 
@@ -88,6 +106,13 @@ training (arrival 1.000 → 0.734, long-band optimality 0.7685). Best-checkpoint
 fixed eval set recovered the same seed to a perfect gate — capability was present in every
 seed; the variable was where training stopped.
 
+<p>
+  <img src="results/best_figures/pathfinder_checkpoint_selection.png" width="900">
+  <br>
+  <sub><em>Same run, same seed, different checkpoint. The final-weights module fails the gate at
+  0.7685 on an operational band; the selected one is perfect across all three.</em></sub>
+</p>
+
 ### Consumer — learnable, and invisible
 
 The drink consumer is certified out-of-sample: 37 eval deaths against the oracle's 35, with
@@ -102,6 +127,14 @@ several drinks. A timid consumer simply drinks more times and arrives anyway.
 
 So the graded-consume design decision — made so that "stop at ideal" would be the real skill —
 is defeated by the orchestrator's retry loop. Recorded as a corrected assumption.
+
+<p>
+  <img src="results/best_figures/calibration_detection_floor.png" width="900">
+  <br>
+  <sub><em>Why the explorer's null is interpretable and the consumer's certification is not worth
+  much: one metric ranks policies across a 0.362 range, the other spans 0.044 and is non-monotone
+  on the headline measure.</em></sub>
+</p>
 
 ### Explorer — not learnable on this contract
 
@@ -125,6 +158,14 @@ representable. The policy class is therefore reactive correlated walks with chem
 five-parameter family (`persist_p`, `follow_p`, `reverse_on_drop_p`, `trend_eps`,
 `avoid_reverse`) that a hand-tuned heuristic already occupies at or near its optimum — a
 coordinate sweep found no setting whose Wilson interval separates from the baseline's.
+
+<p>
+  <img src="results/best_figures/reactive_ceiling_sweep.png" width="900">
+  <br>
+  <sub><em>The whole reactive parameter surface sits inside one confidence band. The apparent best
+  (persist_p=0.7 → 0.5424) does not separate from the baseline's 0.4776 at these seed counts —
+  taking the max of ~20 noisy configurations buys ~2 sd for free.</em></sub>
+</p>
 
 The sharpest evidence: `momentum` scores 0.333 with **no smell at all**, so persistence is the
 largest single jump in the ladder. The baseline persists ~75% of the time. The learned policy

@@ -1,176 +1,266 @@
 # Homeostatic Agents
 
-Reinforcement-learning agents that regulate internal state under spatial constraints.
+Reinforcement-learning agents that regulate internal state under spatial constraints — and a
+six-prototype investigation into **where value-based RL stops working** as the environment
+becomes less stationary and less forgiving.
 
-**Headline result:** [`03b_nstep_robust`](prototypes/03b_nstep_robust) · **Active work:** `05_generalisation` *(generalising across maps)* · **Hypothesis ledger:** [`BUILDNOTES.md`](BUILDNOTES.md)
+**Results index:** [`RESULTS.md`](RESULTS.md) · **Hypothesis ledger:** [`BUILDNOTES.md`](BUILDNOTES.md) · **Re-run it:** [`REPRODUCE.md`](REPRODUCE.md) · **Latest work:** [`06_feudal`](prototypes/06_feudal)
 
-The core control problem is:
+---
 
-$$
-\text{keep } x_t \text{ near } x^\star \text{ while the environment pushes } x_t \text{ away.}
-$$
+## In three sentences
 
-Each prototype keeps the same underlying problem but makes the environment less forgiving. Early versions were abstract homeostatic control tasks. Later versions move the corrective actions into physical space: water and food are *no longer buttons*, but locations. The agent must learn when to act, where the corrective action is available, and how to survive the delay between needing a resource and reaching it.
+An agent must keep hydration and satiation near their setpoints, but water and food are
+*places*, not buttons — so regulation becomes a spatial credit-assignment problem. On a fixed
+map, DQN solves it: 52% of seeds learn the water→food cycle and 38% survive it. On procedurally
+resampled maps that same approach collapses to 0%, and six prototypes of work isolate the cause
+to a single mechanism — the agent cannot commit to crossing a region where no sensory signal
+exists.
 
-The current world is a radius-5 hex grid. Water sits at `(-5, 0)`, food at `(0, 5)`, hydration and satiation decay every tick, and the agent observes only local state. Regulation is therefore both a control problem and a spatial credit-assignment problem.
+---
 
-The current agent is a PyTorch DQN variant with local observations, action masking, experience replay, target networks, masked Bellman targets, 10-step returns, NoisyNet exploration, count-based novelty, and greedy evaluation after training.
+## The arc
 
-## Main question
+**It worked.** Prototype 3b, fixed radius-5 map: **52%** of 100 seeds learn a clean water→food
+limit cycle, **38%** also survive it under a strict evaluation gate. Getting there required
+repairing the reward geometry, then discovering that exploration — not credit assignment — was
+the binding constraint.
 
-A controller that survives one fixed map may have learned a route, *not a rule*.
+**Then it stopped working.** Prototype 04 asked whether that policy learned *a route* or *a
+rule*. Carried onto procedurally generated maps, the survival rate is **0%** once a boundary
+artifact propping it up is removed. Four hypotheses (senses, reachability, memory, a shorter
+approach) were each falsified in turn, narrowing the failure to one mechanism: the agent cannot
+self-commit to a directed crossing of the **dead band** — a 3–5 hex stretch mid-commute where
+neither resource is detectable.
 
-The project is now centred on a sharper question:
-
-> when does value-based reinforcement learning stop working as the environment becomes less stationary, less forgiving, and less tied to one fixed layout?
-
-Prototype 3b is the first point where this becomes visible. Changing the Bellman estimator helped, but it did not reliably break the attractor. The sharper bottleneck was the training distribution.
-
-## Current result: Prototype 3b
-
-On the radius-5 commute, vanilla DQN is bimodal.
-
-Some seeds discover the water→food limit cycle. Others fall into the **water-cult attractor**: they camp near water, protect hydration, and never cross the comfort valley to food. Mean comfort hides this failure because one internal variable can remain well-controlled while the policy is *still* behaviourally wrong.
-
-Mean comfort still helps, but the cleaner benchmark is seed-level behaviour:
-
-$$
-\mathbb{E}[C(x_t)]
-$$
-
-does not answer the behavioural question by itself:
-
-> how many seeds actually learn the water→food cycle?
-
-The best current configuration uses Noisy DQN, count-based novelty, a 50k replay buffer, 10-step returns, comfort-v3, and $\gamma = 0.99$.
-
-Across 100 seeds:
-
-* **52%** learn a clean water→food limit cycle.
-* **38%** also survive that cycle under the stricter ≤5 eval-death gate.
-* Median comfort among solved seeds is about **0.93**.
-* 49/100 seeds finish greedy evaluation with zero deaths.
-
-The gap between 52% and 38% separates route discovery from reliable survival: some agents learn the water→food cycle, but still execute it with enough instability to die during evaluation.
+**Then we decomposed it.** Prototype 06 splits the agent into four modules — orchestrator,
+pathfinder, consumer, explorer — and learns each separately. Three of four are learnable. The
+fourth is not, and the reason turns out to be structural rather than a tuning failure.
 
 <p>
-  <img src="results/best_figures/hex_occupancy__headline.png" width="900">
-  <br>
-  <sub><em>Physical-space occupancy over training and greedy evaluation. Early training is diffuse; by evaluation, the learned policy concentrates on the water–food corridor. Blue outline = water, orange outline = food.</em></sub>
+  <img src="prototypes/06_feudal/results/best_figures/module_scoreboard.png" width="820">
 </p>
+
+---
+
+## What stopped it working
+
+The explorer is the module that must cross the dead band. Five methods were tried; none reached
+even the random-walk floor.
 
 <p>
-  <img src="results/best_figures/phase_density__headline.png" width="650">
+  <img src="prototypes/06_feudal/results/best_figures/explorer_ladder__headline.png" width="880">
   <br>
-  <sub><em>Internal-state density over the comfort surface during greedy evaluation. The solved policy forms a noisy limit cycle around the comfort basin instead of collapsing onto a single-resource attractor.</em></sub>
+  <sub><em>Hand-written policies span 0.17–1.00. Every learned policy — three DQN seeds, stratified
+  replay, a terminal-condition fix, stochastic evaluation, and policy gradient — sits at ~0.10.</em></sub>
 </p>
 
-## What changed in 3b
+**The mechanism.** The explorer's observation contract carries legality, recent actions, smell
+readings and need flags — but **no positional memory**. Coverage, revisit-avoidance and
+frontier-seeking are therefore not representable. That confines the learnable policy class to
+*reactive correlated walks with chemotaxis*: a five-parameter family that a hand-tuned heuristic
+already occupies at or near its optimum. A parameter sweep found no setting whose confidence
+interval separates from the baseline's.
 
-### Comfort surface
+**Learning has nothing to add where a five-parameter search suffices.**
 
-Prototype 3 showed that the old comfort surface was too blunt for a spatial task. In the radius-5 world, the agent often needs to carry a temporary surplus of hydration or satiation while travelling across the map. Being above the setpoint is therefore not the same kind of error as being below it.
+This is a bounded claim, and the boundary matters: the explorer is not learnable *on this
+observation contract*. Prototype 07's specification follows directly — give it visit counts, a
+decaying coverage trace, or episodic novelty, so the policy class contains something a tuned
+heuristic cannot reach.
 
-The repaired surface separates dangerous deficit from strategic surplus:
+---
 
-$$
-D_{\text{deficit}} =
-(h^\star - h)*+^2 + (s^\star - s)*+^2,
-\qquad
-D_{\text{surplus}} =
-(h - h^\star)*+^2 + (s - s^\star)*+^2
-$$
+## What did work: the pathfinder
 
-$$
-d^2 =
-w_{\text{deficit}}D_{\text{deficit}}
-+
-w_{\text{surplus}}D_{\text{surplus}},
-\qquad
-C(h,s) = 2e^{-3d^2} - 1
-$$
+Worth stating alongside the negative result, because it is the same algorithm class.
 
-where $(x)_+ = \max(x, 0)$.
+The pathfinder was trained **entirely outside the simulation**, on bare hex geometry with no
+drives, decay or resources, using sparse arrival rewards and hindsight experience replay. Dropped
+into the full agent it was invoked 34,859 times for a **+0.000** change in survival, at
+**1.0000 optimality** across every operational distance band.
 
-Historically, this continues the reward-geometry repair that began in Prototype 3. Prototype 3 exposed the problem; Prototype 3b refined that surface into part of the consistency benchmark.
+It is not a copy of the reference implementation — agreement is only 0.56, because ties are
+broken differently. It is *independently optimal*, learned from arrival signals alone.
 
-### Credit assignment
+The claim this supports: the algorithm class that solved **0/40** end-to-end in Prototype 04
+recovers optimal navigation once decomposition hands it an observed goal. **The decomposition is
+the finding**, not the pathfinder.
 
-The next hypothesis was that the food reward was too far away, so better credit assignment should help the agent understand the value of the full water→food cycle.
+---
 
-That was partly right, but incomplete.
+## Why the sensory radius is not a free parameter
 
-Double DQN, longer n-step returns, tuned death penalties, and larger $\gamma$ changed how value was propagated through the trajectory. In principle, this should make the delayed value of reaching food easier to learn. But it did not reliably break the water-cult attractor. Longer n-step returns often made the learned behaviour more stable, but stability alone was not enough: the policy could still stabilise around water-camping.
+The dead band has a width, and it is not linear in the sensing radius.
 
-The key issue was:
+For commute length $L$ and smell radius $r$, the agent is guided while within $r$ of water (an
+anti-gradient — it knows where it came from) and within $r$ of food. The scentless middle is
 
-> a value function can only assign credit to trajectories that enter the training distribution.
+$$d(r) = \max(0,\; L - 2r)$$
 
-The credit-assignment tools were not useless. They helped once useful trajectories existed. But they could not manufacture those trajectories by themselves.
+Radius is subtracted from **both ends**, so $+2$ on $r$ removes $4$ from $d$. At band $(9,11)$:
+$r=3$ gives $d \in \{3,4,5\}$; $r=5$ gives $d \in \{0,0,1\}$.
 
-The next knob to turn was exploration.
+Two further effects compound. Detection area on a hex grid is $N(r) = 1 + 3r(r+1)$, quadratic in
+$r$, and mean hitting time for a random walk scales as domain area over target area. And in the
+blind region the walk is unbiased, so expected crossing time for a gap of width $d$ scales as
+$d^2$, not $d$. Together:
 
-NoisyNets and count-based novelty worked only together. NoisyNets gave state-dependent exploration; novelty created pressure away from overused regions. Alone, neither was enough. On vanilla DQN, novelty was spent reinforcing the comfortable water region. With NoisyNets, the same bonus helped move the replay distribution into the food corridor.
+$$\mathcal{D} \;\propto\; \frac{(L-2r)^2}{r^2}$$
 
-So the mechanism was *not*:
+At $L=11$ that is $25/9 \approx 2.78$ for $r=3$ against $1/25 = 0.04$ for $r=5$ — a factor of ~70.
+At $L \le 10$ with $r=5$ the numerator is zero.
 
-> curiosity solves the task.
+**So $r=5$ does not make the task easier; it removes the task.** The phenomenon is parameterised by
+$L - 2r$, not by $r$, which means smell 5 with band $(13,15)$ would be the *same* problem. The
+project holds $r=3$ deliberately, and the cost of doing so is itself diagnostic: smell 3 and smell 5
+tie at 0.86 on an evaluation where water is handed over, and diverge to 0.48 vs 0.71 only when
+water must be found from cold.
 
-It was:
+## What counts as cheating
 
-> induced exploration changes the replay distribution enough for the useful trajectory to become learnable.
+The word has a precise meaning here, and the distinction drove most of the design decisions.
 
-### Replay buffer result
+**An intervention is cheating if it changes what the agent *knows*, rather than how it *learns*.**
 
-The proposed explanation was FIFO forgetting: food transitions are rare, so perhaps a small buffer evicts them before the agent learns from them.
+| intervention | verdict | why |
+|---|---|---|
+| scent as an **observation** | legal | changes the observation space — a different POMDP, but the agent still has to act on the signal |
+| scent as a **reward** | **cheating** | the navigation is then performed by the reward function's gradient, not by the agent. The thing being claimed is exactly the thing being supplied |
+| oracle with pre-populated coordinates | cheating (except as a plumbing smoke test) | the agent never earned the knowledge; the privilege does not survive the oracle→learned swap |
+| a learned module importing the true physics | **cheating** | it reads the consume dynamics instead of estimating them. `world_v1` is the greppable boundary and a probe enforces it |
+| stratified replay sampling | legal | changes which existing transitions the optimiser sees. No new information enters |
+| raising the sensory radius | legal but **changes the problem** | see above — it deletes the dead band rather than easing it, so results are not comparable across $r$ |
 
-The small-to-medium buffer results supported the retention hypothesis at first.
+The operational test: *what privilege evaporates when an oracle is replaced by a learned module?*
+Anything that would be impossible to replace without handing the agent privileged information fails.
 
-Increasing the buffer from 5k to 50k–100k improved solve-rate and reduced deaths. But a near-non-evicting 520k buffer collapsed to 0/10.
+Biological plausibility is not the standard here — but it happens to coincide with it at one point
+worth noting. Real chemotaxis is scent-as-observation: an organism senses a gradient and acts on it;
+it is not paid for proximity. The honest engineering boundary and the biologically real mechanism
+turn out to be the same line.
 
-That ruled out simple FIFO eviction as the whole explanation.
+## Engineering
 
-The issue is *not only* that useful transitions disappear. Old transitions can become stale under a changing policy and reward distribution. The replay buffer is therefore *not just memory*; it is a sampling distribution, and its optimal size is a tradeoff.
+Roughly 5,000 lines across six prototypes. The parts that took the most work are the parts that
+made the results trustworthy rather than the parts that produce them.
 
-At this point, more tuning on the fixed radius-5 commute has diminishing returns. It *could* improve the benchmark, but it risks turning the project into narrow, map-specific fitting.
+**Module contract.** A frozen interface (`contract_v1.py`) defines four modules — orchestrator,
+pathfinder, consumer, explorer — each with an oracle implementation and a learned implementation
+sharing one signature. Swapping any single module is a one-string change to a `ModuleSpec`, which
+is what makes per-module attribution possible at all.
 
-That makes the next benchmark a transfer test rather than another radius-5 tuning pass.
+**Checkpointing.** Weights carry architecture, observation-field list, training config, seed, git
+SHA and achieved metric — never a bare `state_dict`. Modules receive a *string tag* and load inside
+the worker, because sweeps spawn processes on Windows and live torch objects do not survive the
+pickle. Loading asserts the observation encoding matches what the module was trained on; a stale net
+fed a reshaped observation is the worst available failure mode because it fails silently.
+
+**Sweep harness.** Process-parallel with resumable checkpointing, atomic pickle writes, segment-aware
+evaluation metrics (each evaluation slice scored against its own map's coordinates before pooling),
+and Wilson intervals throughout.
+
+**Probe suite.** Nine invariants asserted before any result is read — privilege boundary, checkpoint
+round-trip, registry integrity, determinism, action-scheme shim correctness, dispatch-record
+correctness, and the record-to-tick join the training rigs depend on. Every one guards a failure that
+would otherwise be silent.
+
+**Calibration instruments.** Each module has a deliberately degraded twin (`noisy_oracle`) used to
+establish what a metric can actually detect *before* a learned module is trained against it. This is
+the piece most easily skipped and it changed two conclusions.
 
 ## Project map
 
-| Prototype                                                         | Focus                                                                              | Status     |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------- |
-| [`00_tabular_hydration`](prototypes/00_tabular_hydration)         | Tabular Q-learning on one-axis hydration with delayed drink effects                | Superseded |
-| [`01_numpy_dqn_homeostasis`](prototypes/01_numpy_dqn_homeostasis) | From-scratch NumPy DQN with manual backprop for homeostatic control                | Superseded |
-| [`01b_pytorch_dqn_port`](prototypes/01b_pytorch_dqn_port)         | PyTorch port; reproduced the same behaviour and failure modes                      | Superseded |
-| [`02_spatial_dqn`](prototypes/02_spatial_dqn)                     | Hex world, local observation, movement, and action masks                           | Superseded |
-| [`03_spatial_robust`](prototypes/03_spatial_robust)               | Radius-5 exposed the failure of the old reward/metric setup                        | Superseded |
-| [`03b_nstep_robust`](prototypes/03b_nstep_robust)                 | Consistency: exploration vs. the water-cult attractor                              | Current    |
-| [`04_generalisation`](prototypes/04_generalisation)               | Procedural `r=20` maps — route or rule? Falsified the fixed-map approach (H1–H4); bottleneck isolated to directed exploration | Superseded |
-| `05_generalisation` *(active)*                                    | Same task as 04, reframed: one weight set that generalises across resampled maps (curriculum over fresh worlds)               | Next       |
-| `06_regime_shift` *(planned)*                                     | Seasonal brightness, scarce food, and non-stationary reward distributions          | Planned    |
+| Prototype | Focus | Status |
+|---|---|---|
+| [`00_tabular_hydration`](prototypes/00_tabular_hydration) | Tabular Q-learning, one-axis hydration, delayed effects | Superseded |
+| [`01_numpy_dqn_homeostasis`](prototypes/01_numpy_dqn_homeostasis) | From-scratch NumPy DQN with manual backprop | Superseded |
+| [`01b_pytorch_dqn_port`](prototypes/01b_pytorch_dqn_port) | PyTorch port; reproduced behaviour and failure modes | Superseded |
+| [`02_spatial_dqn`](prototypes/02_spatial_dqn) | Hex world, local observation, movement, action masks | Superseded |
+| [`03_spatial_robust`](prototypes/03_spatial_robust) | Radius-5 exposed the old reward/metric setup as unfit | Superseded |
+| [`03b_nstep_robust`](prototypes/03b_nstep_robust) | **52% / 38%** on the fixed commute; exploration beats credit assignment | Headline (fixed map) |
+| [`04_generalisation`](prototypes/04_generalisation) | Procedural r=20 maps — route or rule? H1–H4 all falsified | Superseded |
+| [`05_generalisation`](prototypes/05_generalisation) | Curriculum + earned-memory attempt; abandoned mid-hypothesis | Superseded |
+| [`06_feudal`](prototypes/06_feudal) | **Feudal decomposition — which modules can RL learn?** | Current |
 
-## Repository guide
+---
 
-| File / folder                                                | Role                                                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| [`BUILDNOTES.md`](BUILDNOTES.md)                             | Compressed project arc and hypothesis ledger                 |
-| [`prototypes/03b_nstep_robust`](prototypes/03b_nstep_robust) | Current prototype: setup, sweeps, solve gates, failure modes |
-| [`results/best_figures`](results/best_figures)               | Headline plots used in this README                           |
-| `prototypes/*/results`                                       | Per-prototype sweep outputs and diagnostics                  |
+## The central question
 
-## Next: Prototype 5
+> When does value-based reinforcement learning stop working as the environment becomes less
+> stationary, less forgiving, and less tied to one fixed layout?
 
-Prototype 4 ran the generalisation test and closed it out on the fixed-map framing. The environment became a procedurally generated radius-20 world with training and evaluation split across map seeds, so success could not come from memorising one route. It asked:
+Each prototype keeps the same control problem and makes the environment less forgiving. Early
+versions were abstract homeostatic control. Later versions move corrective actions into physical
+space: water and food become locations, and the agent must learn *when* to act, *where* the
+action is available, and how to survive the delay between needing a resource and reaching it.
 
-> can the agent learn a survival rule across layouts?
+### Prototype 3b, briefly
 
-The answer was no, and the reason is now isolated. Across four pre-registered hypotheses the failure narrowed to a single mechanism: the agent cannot self-commit to a directed crossing through the signal-free middle of the commute. It is not a representation problem (local senses cannot span the dead band, H2), not a reaching problem (placed mid-route it still will not cross, H3), and not an architecture problem (a GRU memory channel does not help and slightly hurts, H4). What is left is directed exploration — credit cannot assign to a journey the policy never commits to sampling. Full record in [`04_generalisation`](prototypes/04_generalisation) and [`BUILDNOTES.md`](BUILDNOTES.md).
+On the fixed radius-5 commute, DQN is bimodal. Some seeds discover the water→food limit cycle;
+others fall into the **water-cult attractor** — camping near water, protecting hydration, never
+crossing to food. Mean comfort hides this, because one internal variable can stay well-controlled
+while the policy is behaviourally wrong. Seed-level solve-rate is the honest metric.
 
-That retires the fixed-map framing, not the question. Prototype 5 keeps the same generalisation task but changes the success criterion:
+Three findings, in the order they were established:
 
-> stop chasing one config robust across seeds on a fixed map; find one weight set that generalises across maps.
+1. **Reward geometry first.** Deficit and surplus are not symmetric errors — an agent crossing a
+   map needs to carry a surplus. Separating them was a precondition for anything else working.
+2. **Credit assignment was not the bottleneck.** Double DQN, longer n-step returns, tuned death
+   penalties and larger γ all changed how value propagated, and none reliably broke the attractor.
+   *A value function can only assign credit to trajectories that enter the training distribution.*
+3. **Exploration was.** NoisyNets and count-based novelty worked only in combination — novelty
+   alone reinforced the comfortable water region; with NoisyNets it moved the replay distribution
+   into the food corridor. The mechanism is not "curiosity solves the task" but "induced
+   exploration changes the replay distribution enough for the useful trajectory to become
+   learnable."
 
-Each sim instance becomes a freshly resampled world, evaluated on held-out maps with frozen weights — the route-vs-rule thesis stated directly, since resampling makes route-memorisation impossible by construction. The candidate approach is a curriculum over resampled maps, with band width as a non-leaking curriculum variable, gradient RL retained.
+A near-non-evicting 520k replay buffer collapsing to 0/10 ruled out simple FIFO forgetting: the
+buffer is a **sampling distribution**, not just memory, and its optimal size is a trade-off
+against staleness under a non-stationary policy.
 
-After that, Prototype 6 moves to true regime shift: seasonal brightness, scarce food, moving resources, and reward distributions that change under the value function.
+---
+
+## Method notes
+
+The experimental apparatus is a deliberate part of this project, and several conclusions came
+from it rather than from any single run.
+
+- **Calibrate before training.** A null result is uninterpretable unless the metric has been shown
+  capable of producing a non-null one. Every module has a deliberately degraded control
+  (`noisy_oracle`) used to establish a detection floor *first*. The explorer's metric spans 0.362;
+  the consumer's spans 0.044 — which is why the consumer's certification means less than it looks.
+- **A non-monotone metric cannot rank policies.** Under controlled degradation, `solveScore`
+  scored a knowably worse consumer *higher*. Any detection floor computed from it is an artifact.
+- **Error character dominates error rate.** Two pathfinders differing by 0.02 in optimality
+  differed **90×** in expected excess steps, because one's mistakes were sideways and the other's
+  were reversals.
+- **A module's episode boundary is not the agent's.** It ends when the sub-task ends;
+  bootstrapping past it corrupts exactly the transitions the module should learn from.
+- **Never evaluate on a resampled world.** Fixed evaluation seeds, disjoint from certification
+  seeds — otherwise the curve measures the world, not the policy.
+- **Never relax a pre-registered threshold.** The pathfinder's 0.99 gate failed three runs before
+  a properly selected checkpoint scored 1.0000. The gate was right; the training was not.
+
+Predictions are written into [`BUILDNOTES.md`](BUILDNOTES.md) **before** each sweep runs, in
+Bet → Prediction → Result → Verdict form. The entries where the result contradicts the prediction
+are the load-bearing ones and are left exactly as written.
+
+---
+
+## Repository layout
+
+```
+prototypes/<NN>_<name>/     one prototype: code, README (hypothesis ledger), results/
+  06_feudal/
+    model_modules/          contract, oracle impls, learned impls, checkpointing
+    training/               rigs and per-module trainers
+    tests/                  probes, calibration harnesses, acceptance gates
+    figures/                figure generation
+BUILDNOTES.md               the lab notebook — chronological, predictions before results
+RESULTS.md                  every headline number in one place
+```
+
+**Stack:** Python, NumPy, PyTorch. DQN family (vanilla / double / n-step / NoisyNet / DRQN),
+hindsight experience replay, policy gradient with a value baseline, count-based novelty,
+process-parallel sweep harness with resumable checkpointing.

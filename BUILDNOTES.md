@@ -6,6 +6,51 @@ BUILDNOTES.md serves as a compressed project arc with hypothesis ledgers where r
 
 The front page states the current result, while this file records the build path: what each prototype changed, what broke, what got superseded, and why the next prototype existed.
 
+**How to read it.** Entries follow **Bet → Prediction → Result → Verdict**, and the prediction is
+written *before* the sweep runs. Entries where the result contradicts the prediction are the
+load-bearing ones and are left exactly as first written — including diagnoses later shown to be
+wrong. Nothing here is retrofitted to match an outcome.
+
+For headline numbers without the narrative, see [`RESULTS.md`](RESULTS.md). For the argument, see
+[`README.md`](README.md).
+
+---
+
+## Contents
+
+| section | what it settles | verdict |
+|---|---|---|
+| [Prototype 00 — tabular hydration](#prototype-00--tabular-hydration) | tabular Q-learning on one drive | SUPERSEDED |
+| [Prototype 01 — NumPy DQN](#prototype-01--numpy-dqn) | function approximation, hand-written backprop | SUPERSEDED |
+| [Prototype 01b — PyTorch port](#prototype-01b--pytorch-port) | same behaviour, same failure modes | SUPERSEDED |
+| [Prototype 02 — physical embedding](#prototype-02--physical-embedding) | resources become places, not buttons | SUPERSEDED |
+| [Prototype 03 — radius-5 and reward geometry](#prototype-03--radius-5-world-and-reward-geometry) | deficit ≠ surplus; comfort surface repaired | SUPERSEDED |
+| [Prototype 03b — consistency](#prototype-03b--consistency-and-the-water-cult-attractor) | **52% / 38%**; exploration beats credit assignment | HEADLINE (fixed map) |
+| [Prototype 04 — generalisation](#prototype-04--hypothesis-ledger) | route not rule; H1–H4 all falsified | SUPERSEDED |
+| [Prototype 05 — curriculum + earned memory](#prototype-05--hypothesis-ledger) | abandoned mid-hypothesis; triggered the decomposition | SUPERSEDED |
+| [Prototype 06 — feudal decomposition](#prototype-06--feudal) | 3 of 4 modules learnable; explorer is not | CURRENT |
+
+### Prototype 06 entries
+
+Appended newest-first as they were written, so they read in reverse. Chronological order:
+
+| entry | subject | verdict |
+|---|---|---|
+| P1 | pathfinder trained out-of-sim, dropped into the stack | CONFIRMED (contract closed) |
+| P1.1 | calibrating metrics against a known-bad pathfinder | CONFIRMED (found the sensitive metric) |
+| P1.2 | does the pathfinder result reproduce across seeds? | FALSIFIED (1 in 3 shipped broken) |
+| P1.3 / P1.4 | best-checkpoint selection; 3-seed re-run | CONFIRMED (2/3 pass the gate) |
+| P2 | comfort as a consumer reward | FALSIFIED (tolerance band makes it flat) |
+| P2.1 | survival reward fixes it | CONFIRMED (certified, training unstable) |
+| P2.2 | is the instability buffer flooding? | FALSIFIED (my diagnosis was wrong) |
+| P2.3 | consumer oscillates across a plateau | CLOSED (environment cannot resolve it) |
+| P3.0 | explorer metric calibration, before training | CONFIRMED (0.362 dynamic range) |
+| P3.1 | first explorer run | FALSIFIED (reward never reached the optimiser) |
+| P3.2 | is the policy class binding? | FALSIFIED (Q-function anti-informative) |
+| P3.4 | policy gradient | **FALSIFIED — final verdict** |
+
+---
+
 ## Prototype 00 — tabular hydration
 
 ### Why it existed
@@ -616,7 +661,9 @@ life_cap 1000, sim_len 7000 / eval_len 5000, comfort surface `OVER_TOL=1.0` (tol
 `OVER_W=0.02`, h_fill 1.6 / s_fill 1.3, h_crit=s_crit 0.7, **8 seeds** per cell.
 `solveScore = eval timeouts / (timeouts + deaths)`.
 
-## 1. god_vs_legal_check.py — the headline triple (smell 3, dm 0.7, lw 10)
+### Reproduction check — do the standing Proto 06 numbers hold?
+
+#### 1. god_vs_legal_check.py — the headline triple (smell 3, dm 0.7, lw 10)
 
 | policy | eval deaths | solveScore | eval causes |
 |---|---|---|---|
@@ -627,7 +674,7 @@ life_cap 1000, sim_len 7000 / eval_len 5000, comfort surface `OVER_TOL=1.0` (tol
 solves: god ~1.0, reactive ~0.48, random ~0.17. Reactive deaths are mixed
 hydration/satiation (29 vs 6) — genuine two-resource navigation, not a food-only artifact.
 
-## 2. nondoomed_sweep.py (smell 3, 8 seeds)
+#### 2. nondoomed_sweep.py (smell 3, 8 seeds)
 
 **A) explorer comparison @ dm 0.7, leeway 10**
 
@@ -661,7 +708,7 @@ The filter is the biggest single lever on the number, as the draft flags: relaxi
 0 → 25 moves solveScore 0.46 → 0.57. The operating point (leeway 10 → 0.48) is defensible but
 report it with the leeway stated.
 
-## 3. Food-isolation lineage (beside-water eval, water handed over, 8 seeds)
+#### 3. Food-isolation lineage (beside-water eval, water handed over, 8 seeds)
 
 | smell | eval deaths | solveScore |
 |---|---|---|
@@ -672,7 +719,7 @@ smell 3 reproduces 0.86 exactly. smell 5 came out 0.86 (identical deaths at n=8)
 **0.89** — a 0.03 gap that is 2–3 deaths of seed noise at this sample size, not a real
 disagreement. If you want the 0.89 to stand, re-run at ≥16 seeds; otherwise soften to "≈0.86–0.89".
 
-## Two claims to fix in the draft
+#### Two claims to fix in the draft
 
 **(a) "Smell 3 costs ~0.03 solveScore vs 5 — cheap honesty."**
 True only on the *beside-water* eval (water handed over): 0.86 vs 0.86–0.89, gap ≈ 0.00–0.03.
@@ -700,7 +747,7 @@ Under the current tolerance-band comfort (`OVER_TOL=1.0`) that pull is gone by d
 sweep with `OVER_TOL=0`. As written next to these tolerance-band numbers it can read as
 contradicted — scope it to "across fills, under the pre-tolerance comfort."
 
-## Verdict
+#### Reproduction verdict
 
 The load-bearing Proto 06 numbers reproduce exactly (god 1.00, reactive 0.48, random 0.17,
 decay 0.7 > 0.9, food-isolation ≈ 0.86). The reframe is well-supported: reactive floor 0.48,

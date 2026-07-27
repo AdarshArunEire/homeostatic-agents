@@ -1,3 +1,6 @@
+# Private notes — rehearsal material, not part of the repo.
+*.local.md
+
 # Trained module weights (Proto 06+).
 # Blobs are disposable; results/weights/MANIFEST.json IS committed and records the
 # trainer, config, seed and achieved metric for each tag, so any .pt can be regenerated
