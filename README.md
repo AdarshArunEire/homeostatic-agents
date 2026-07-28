@@ -15,7 +15,7 @@ becomes less stationary and less forgiving.
   space between the halos is the <strong>dead band</strong>: the middle of the commute, where
   neither resource can be detected. That gap is what the whole project turned out to be about.
   <br><br>
-  Hand-written reactive stack (solveScore 0.48), seed 1
+  Hand-written reactive stack (solveScore 0.48), seed 1</em></sub>
 </p>
 
 ---
