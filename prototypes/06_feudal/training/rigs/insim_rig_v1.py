@@ -337,6 +337,126 @@ def count_discoveries(run) -> int:
     return int((is_explore[:-1] & is_go[1:]).sum())
 
 
+def _abstract4(a):
+    """Action enum -> the 4-way head's categories. EXPLORE_0..5 collapse to one option."""
+    a = np.asarray(a)
+    return np.where(a == 0, 0, np.where(a == 1, 1, np.where(a == 8, 2, 3)))
+
+
+def orchestrator_reward(step_reward: float = 0.01, death_penalty: float = 1.0,
+                        delib_cost: float = 0.0, delib_exempt_consume: bool = True):
+    """
+    Orchestrator reward: pure survival. +step_reward per tick alive, -death_penalty on death.
+
+    NOT comfort, and that is a decision paid for in P2. `OVER_TOL = 1.0` makes comfort flat
+    from ideal to ideal+1.0, and the orchestrator's interesting decisions — when to abandon a
+    hunt, when to stop consuming — happen almost entirely INSIDE that flat region. Comfort is
+    constant across exactly the choices being made, so it cannot grade them.
+
+    Survival can. With `step_reward = 0.01` and gamma 0.99 the value of an immortal agent is
+    0.01/(1-0.99) = 1.0, so `death_penalty = 1.0` is "you lose a full lifetime" — commensurate
+    with the discounted return it interrupts, which is the k/(1-gamma) scaling carried since
+    03b rather than an arbitrary constant.
+
+    The orchestrator is dispatched every tick, so transitions are tick-to-tick and n-step
+    returns propagate over real time.
+
+    DELIBERATION COST (`delib_cost`, default 0.0 so nothing already trained changes).
+
+    A penalty charged whenever the emitted abstract action differs from the previous tick's.
+    This is Harb et al. 2018's lever, and it exists because P4.2/P4.3 measured the textbook
+    option-collapse failure: with no termination function the module re-decides every tick,
+    median GO_FOOD run length is 1.0 against the oracle's 10.0, and forcing persistence at
+    inference recovers ~30% of the gap. A switching cost asks whether the module will
+    ACQUIRE persistence when it is merely cheaper, rather than having it imposed.
+
+    SIZE IT AGAINST THE SWITCH RATE, NOT THE STEP REWARD. This is the trap, and d0 fell in
+    it. The per-tick cost is delib_cost x switches-per-tick, and the uncommitted policy
+    switches ~0.5-0.7 times per tick (dwell ~1.4). At delib_cost=0.02 that is ~0.012/tick
+    against step_reward=0.01 — a penalty LARGER than the entire survival signal. Target
+    ~10% of step_reward once multiplied out, which puts the usable range near 0.001-0.005.
+
+    CONSUME IS EXEMPT BY DEFAULT, and this is not a tuning choice. `d0` (delib 0.02, no
+    exemption) collapsed to 78.9% CONSUME held for a mean of 307 ticks: never switching
+    costs nothing, so parking on a resource tile is the trivial optimum. It died of thirst
+    while standing on food. Transitions into and out of CONSUME are forced by which tile
+    the agent occupies rather than deliberated, so charging them prices the wrong thing.
+    With the exemption the cost falls exactly where the pathology is — mid-commute flips
+    between GO_WATER and GO_FOOD — while a proper commute (CONSUME -> GO_FOOD -> hold ->
+    CONSUME -> GO_WATER) pays almost nothing.
+
+    A respawn is not a switch. Deaths break the comparison so a fresh life's first action
+    is never charged against the previous life's last.
+    """
+    cache = {"id": None, "sw": None}
+
+    def _switches(run):
+        if cache["id"] == id(run):
+            return cache["sw"]
+        k = _abstract4(run["abstract_action_T"])
+        dead = np.asarray(run["death_T"]).astype(bool)
+        sw = np.zeros(len(k), dtype=bool)
+        sw[1:] = (k[1:] != k[:-1]) & ~dead[:-1]
+        if delib_exempt_consume:
+            # CONSUME is index 2; a transition touching it is tile-forced, not deliberated
+            sw[1:] &= ~((k[1:] == 2) | (k[:-1] == 2))
+        cache.update(id=id(run), sw=sw)
+        return sw
+
+    def fn(run, t, t_next):
+        dead = np.asarray(run["death_T"]).astype(bool)
+        span = max(1, t_next - t)
+        died = bool(dead[t:min(len(dead), t + span)].any())
+        r = step_reward * span - (death_penalty if died else 0.0)
+        if delib_cost:
+            sw = _switches(run)
+            r -= delib_cost * float(sw[t:min(len(sw), t + span)].sum())
+        return r
+
+    return fn
+
+
+def dwell_stats(actions, deaths=None) -> dict:
+    """
+    How long does the module hold an intention?
+
+    Mean and median run length of each abstract option, plus the overall switch rate.
+    Takes the Action-enum timeseries (EXPLORE_0..5 collapse to one option) and optionally
+    `death_T`, so a respawn does not read as a long run spanning two lives.
+
+    This is the readout for the deliberation-cost sweep. It is only meaningful when the
+    horizon is NOT enforced: under `hold=k` these values are set by construction.
+    """
+    k = _abstract4(actions)
+    if deaths is not None:
+        d = np.asarray(deaths).astype(bool)
+        k = k.copy()
+        k[np.flatnonzero(d)] = -1          # break runs at a death
+
+    names = {0: "GO_WATER", 1: "GO_FOOD", 2: "CONSUME", 3: "EXPLORE"}
+    runs = {v: [] for v in names.values()}
+    cur, n = None, 0
+    for v in k:
+        if v == cur:
+            n += 1
+            continue
+        if cur in names and n:
+            runs[names[cur]].append(n)
+        cur, n = int(v), 1
+    if cur in names and n:
+        runs[names[cur]].append(n)
+
+    out = {}
+    for name, xs in runs.items():
+        out[f"dwell_mean_{name}"] = float(np.mean(xs)) if xs else 0.0
+        out[f"dwell_med_{name}"] = float(np.median(xs)) if xs else 0.0
+        out[f"dwell_n_{name}"] = len(xs)
+    total = sum(len(x) for x in runs.values())
+    out["dwell_mean_all"] = float(np.mean([n for xs in runs.values() for n in xs])) if total else 0.0
+    out["switch_rate"] = total / max(1, len(k))
+    return out
+
+
 def survival_reward(run_key: str = "comfort_T"):
     """
     Orchestrator reward: comfort accrued between decisions, with death heavily penalised.

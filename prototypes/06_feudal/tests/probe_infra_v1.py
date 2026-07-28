@@ -161,7 +161,7 @@ def probe_registry():
 
     rng = np.random.default_rng(0)
     needs_weights = {("pathfinder", "learned"), ("eat", "learned"), ("drink", "learned"),
-                     ("explorer", "learned")}
+                     ("explorer", "learned"), ("orchestrator", "learned")}
     built, skipped = 0, []
 
     for slot, impls in S.MODULE_REGISTRY.items():

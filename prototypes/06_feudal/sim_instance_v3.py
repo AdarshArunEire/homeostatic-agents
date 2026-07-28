@@ -39,6 +39,10 @@ from model_modules.contract_v1 import (
 
 from model_modules.oracle_modules.orchestrator_oracle_v1 import OracleOrchestrator
 
+from model_modules.oracle_modules.orchestrator_noisy_v1 import (
+    make_orchestrator_noisy,
+)
+
 from model_modules.oracle_modules.pathfinder_oracle_v1 import OraclePathfinder
 
 from model_modules.oracle_modules.pathfinder_noisy_v1 import (
@@ -77,6 +81,10 @@ from model_modules.learned_modules.explorer_learned_v1 import (
     make_explorer_learned,
 )
 
+from model_modules.learned_modules.orchestrator_learned_v1 import (
+    make_orchestrator_learned,
+)
+
 from model_modules.oracle_modules.explorer_noisy_v1 import (
     make_explorer_noisy,
 )
@@ -111,7 +119,13 @@ class QueuedAction:
 MODULE_REGISTRY = {
     "orchestrator": {
         "oracle": OracleOrchestrator,
-        # "learned": LearnedOrchestrator,      
+        # instrument: epsilon (general) + crit_scale (the arbitration threshold, whose
+        # ablation has a recorded effect size — hydration deaths 43 -> 10)
+        "noisy_oracle": make_orchestrator_noisy,
+        # 4-way abstract head (GO_WATER / GO_FOOD / CONSUME / EXPLORE); exploration is
+        # DELEGATED to the explorer module so arbitration is not confounded with a task
+        # already established as unlearnable
+        "learned": make_orchestrator_learned,
     },
     "pathfinder": {
         "oracle": OraclePathfinder,
@@ -477,6 +491,13 @@ def sim_instance(
         "brightness": [],
         "dead": [],
         "coord": [],
+        # Memory-slot state AS THE ORCHESTRATOR SAW IT this tick. Recorded because it
+        # determines the LEGAL ACTION SET (`Orchestrator.legal_mask` masks GO_* on these),
+        # and an action share computed without it is not comparable across policies: a
+        # policy that never fills the food slot cannot emit GO_FOOD, which looks identical
+        # in the aggregate to a policy that can and won't.
+        "water_known": [],
+        "food_known": [],
     }
 
     def _water_adjacent_pool():
@@ -934,6 +955,10 @@ def sim_instance(
         lifetime_stats["brightness"].append(float(b))
         lifetime_stats["dead"].append(int(cur_dead))
         lifetime_stats["coord"].append(log_coord)
+        # same expressions the OrchestratorObs above was built from, so the record is of
+        # what the module was shown rather than of state it never saw
+        lifetime_stats["water_known"].append(int(last_water_seen is not None))
+        lifetime_stats["food_known"].append(int(last_food_seen is not None))
 
     # -------------------------------------------------------------------------
     # return summary
@@ -1003,6 +1028,8 @@ def sim_instance(
         "eat_frac_T": np.asarray(lifetime_stats["eat_frac"], dtype=np.float32),
         "move_dir_T": np.asarray(lifetime_stats["move_dir"], dtype=np.int32),
         "consumer_slot_T": np.asarray(lifetime_stats["consumer_slot"], dtype=np.int32),
+        "water_known_T": np.asarray(lifetime_stats["water_known"], dtype=np.int8),
+        "food_known_T": np.asarray(lifetime_stats["food_known"], dtype=np.int8),
         "brightness_T": np.asarray(lifetime_stats["brightness"], dtype=np.float32),
         "coordinates_T": np.asarray(lifetime_stats["coord"], dtype=object),
 

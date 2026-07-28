@@ -6,6 +6,56 @@ BUILDNOTES.md serves as a compressed project arc with hypothesis ledgers where r
 
 The front page states the current result, while this file records the build path: what each prototype changed, what broke, what got superseded, and why the next prototype existed.
 
+**How to read it.** Entries follow **Bet → Prediction → Result → Verdict**, and the prediction is
+written *before* the sweep runs. Entries where the result contradicts the prediction are the
+load-bearing ones and are left exactly as first written — including diagnoses later shown to be
+wrong. Nothing here is retrofitted to match an outcome.
+
+For headline numbers without the narrative, see [`RESULTS.md`](RESULTS.md). For the argument, see
+[`README.md`](README.md).
+
+---
+
+## Contents
+
+| section | what it settles | verdict |
+|---|---|---|
+| [Prototype 00 — tabular hydration](#prototype-00--tabular-hydration) | tabular Q-learning on one drive | SUPERSEDED |
+| [Prototype 01 — NumPy DQN](#prototype-01--numpy-dqn) | function approximation, hand-written backprop | SUPERSEDED |
+| [Prototype 01b — PyTorch port](#prototype-01b--pytorch-port) | same behaviour, same failure modes | SUPERSEDED |
+| [Prototype 02 — physical embedding](#prototype-02--physical-embedding) | resources become places, not buttons | SUPERSEDED |
+| [Prototype 03 — radius-5 and reward geometry](#prototype-03--radius-5-world-and-reward-geometry) | deficit ≠ surplus; comfort surface repaired | SUPERSEDED |
+| [Prototype 03b — consistency](#prototype-03b--consistency-and-the-water-cult-attractor) | **52% / 38%**; exploration beats credit assignment | HEADLINE (fixed map) |
+| [Prototype 04 — generalisation](#prototype-04--hypothesis-ledger) | route not rule; H1–H4 all falsified | SUPERSEDED |
+| [Prototype 05 — curriculum + earned memory](#prototype-05--hypothesis-ledger) | abandoned mid-hypothesis; triggered the decomposition | SUPERSEDED |
+| [Prototype 06 — feudal decomposition](#prototype-06--feudal) | 3 of 4 modules learnable; explorer is not | CURRENT |
+
+### Prototype 06 entries
+
+Appended newest-first as they were written, so they read in reverse. Chronological order:
+
+| entry | subject | verdict |
+|---|---|---|
+| P1 | pathfinder trained out-of-sim, dropped into the stack | CONFIRMED (contract closed) |
+| P1.1 | calibrating metrics against a known-bad pathfinder | CONFIRMED (found the sensitive metric) |
+| P1.2 | does the pathfinder result reproduce across seeds? | FALSIFIED (1 in 3 shipped broken) |
+| P1.3 / P1.4 | best-checkpoint selection; 3-seed re-run | CONFIRMED (2/3 pass the gate) |
+| P2 | comfort as a consumer reward | FALSIFIED (tolerance band makes it flat) |
+| P2.1 | survival reward fixes it | CONFIRMED (certified, training unstable) |
+| P2.2 | is the instability buffer flooding? | FALSIFIED (my diagnosis was wrong) |
+| P2.3 | consumer oscillates across a plateau | CLOSED (environment cannot resolve it) |
+| P3.0 | explorer metric calibration, before training | CONFIRMED (0.362 dynamic range) |
+| P3.1 | first explorer run | FALSIFIED (reward never reached the optimiser) |
+| P3.2 | is the policy class binding? | FALSIFIED (Q-function anti-informative) |
+| P3.4 | policy gradient | **FALSIFIED — final verdict** |
+| P4.0 | orchestrator metric calibration, before training | CONFIRMED (0.478 range, the largest here) |
+| P4.1 | learned orchestrator | FALSIFIED (learns the water-cult attractor) |
+| P4.2 | was that attractor measured on the right denominator? | PARTIAL (corrects P4.1's headline ratio) |
+| P4.3 | does forcing commitment recover survival? | CONFIRMED (~30% of the gap; controls pass) |
+| P4.4 | will it acquire commitment from a switching cost? | **FALSIFIED — inaction is cheaper** |
+
+---
+
 ## Prototype 00 — tabular hydration
 
 ### Why it existed
@@ -616,7 +666,9 @@ life_cap 1000, sim_len 7000 / eval_len 5000, comfort surface `OVER_TOL=1.0` (tol
 `OVER_W=0.02`, h_fill 1.6 / s_fill 1.3, h_crit=s_crit 0.7, **8 seeds** per cell.
 `solveScore = eval timeouts / (timeouts + deaths)`.
 
-## 1. god_vs_legal_check.py — the headline triple (smell 3, dm 0.7, lw 10)
+### Reproduction check — do the standing Proto 06 numbers hold?
+
+#### 1. god_vs_legal_check.py — the headline triple (smell 3, dm 0.7, lw 10)
 
 | policy | eval deaths | solveScore | eval causes |
 |---|---|---|---|
@@ -627,7 +679,7 @@ life_cap 1000, sim_len 7000 / eval_len 5000, comfort surface `OVER_TOL=1.0` (tol
 solves: god ~1.0, reactive ~0.48, random ~0.17. Reactive deaths are mixed
 hydration/satiation (29 vs 6) — genuine two-resource navigation, not a food-only artifact.
 
-## 2. nondoomed_sweep.py (smell 3, 8 seeds)
+#### 2. nondoomed_sweep.py (smell 3, 8 seeds)
 
 **A) explorer comparison @ dm 0.7, leeway 10**
 
@@ -661,7 +713,7 @@ The filter is the biggest single lever on the number, as the draft flags: relaxi
 0 → 25 moves solveScore 0.46 → 0.57. The operating point (leeway 10 → 0.48) is defensible but
 report it with the leeway stated.
 
-## 3. Food-isolation lineage (beside-water eval, water handed over, 8 seeds)
+#### 3. Food-isolation lineage (beside-water eval, water handed over, 8 seeds)
 
 | smell | eval deaths | solveScore |
 |---|---|---|
@@ -672,7 +724,7 @@ smell 3 reproduces 0.86 exactly. smell 5 came out 0.86 (identical deaths at n=8)
 **0.89** — a 0.03 gap that is 2–3 deaths of seed noise at this sample size, not a real
 disagreement. If you want the 0.89 to stand, re-run at ≥16 seeds; otherwise soften to "≈0.86–0.89".
 
-## Two claims to fix in the draft
+#### Two claims to fix in the draft
 
 **(a) "Smell 3 costs ~0.03 solveScore vs 5 — cheap honesty."**
 True only on the *beside-water* eval (water handed over): 0.86 vs 0.86–0.89, gap ≈ 0.00–0.03.
@@ -700,7 +752,7 @@ Under the current tolerance-band comfort (`OVER_TOL=1.0`) that pull is gone by d
 sweep with `OVER_TOL=0`. As written next to these tolerance-band numbers it can read as
 contradicted — scope it to "across fills, under the pre-tolerance comfort."
 
-## Verdict
+#### Reproduction verdict
 
 The load-bearing Proto 06 numbers reproduce exactly (god 1.00, reactive 0.48, random 0.17,
 decay 0.7 > 0.9, food-isolation ≈ 0.86). The reframe is well-supported: reactive floor 0.48,
@@ -710,6 +762,345 @@ real. Two wording fixes above will make it airtight.
 *NOTE TO ME LATER CUZ IMMA FORGET* timeseries needed to intergtae a gradient → smell is a tuple of 3, not a scalar. hope this helps!
 
 ## Prototype 06 — hypothesis ledger
+
+### P4.4 — VERDICT: a switching cost cannot buy commitment, because inaction is cheaper
+
+**Bet.** P4.3 showed commitment is worth ~30% of the gap when *enforced*. The enforced
+horizon is a probe, not something to ship. So: replace it with a **deliberation cost**
+(Harb et al. 2018) — a penalty of `delib_cost` whenever the emitted abstract action differs
+from the previous tick's — and ask the question the project is actually about. Not *does
+commitment help* (answered) but *will the module acquire commitment when persistence is
+merely cheaper rather than mandatory*.
+
+**Prediction.** An inverted U with an interior optimum, as `crit_scale` had: inert below,
+degenerate above. `dwell` for GO_FOOD lifts off 1.0 toward the oracle's ~10.
+
+**Result.** Falsified, monotonically, in one direction only.
+
+| tag | delib_cost | CONSUME share | CONSUME dwell | GO_FOOD dwell | best solveScore |
+|---|---|---|---|---|---|
+| `o0` | 0 | 0.235 | — | 1.0 | 0.168 |
+| `d1` | 0.002 | 0.573 | 30.4 | 2.71 | 0.149 |
+| `d2` | 0.005 | ~0.70 (rd 10) | 36.2 | 11.1 | 0.101 (partial) |
+| `d0` | 0.02¹ | **0.789** | **307.2** | 3.69 | 0.174 |
+
+¹ `d0` also charged switches into and out of CONSUME; `d1`/`d2` exempt it. The exemption
+reduced the severity — dwell 307 → 30 — and did not change the direction.
+
+Every arm collapses onto **CONSUME**, held for tens to hundreds of ticks, and every arm
+dies of thirst while standing on food (`d0` 84/113 hydration, `d1` 85/114). No arm beats
+the δ=0 control. The dose-response is clean and points at degeneracy.
+
+**Verdict: FALSIFIED, and the mechanism is the finding.** A switching penalty rewards *not
+switching*, and the policy that switches least is the one that does nothing. Zero switches
+is the trivial global optimum of the cost term, and it is inaction. **The term cannot
+distinguish "follow through on a chosen plan" from "stand still", because both have zero
+switches.**
+
+That is exactly what the enforced horizon does differently, and the contrast is the reason
+to keep both entries side by side. `hold=k` can only extend an option that was **actively
+chosen** — there is no way to express "stand still" in it, because standing still is not an
+option it can hold. Same objective, two instruments, and only one of them can represent the
+target behaviour. One bought 30% of the gap; the other cost 2%.
+
+**Why parking is not stupid, which is the part that generalises.** With `food_known` at 45%
+and the acquisition deficit of P4.2 intact, leaving a resource tile is a gamble this module
+usually loses. Camping returns a guaranteed discounted ~0.73; committing to a commute is
+worth ~1.0 *if it succeeds*, and it mostly does not. Adding friction to movement makes the
+safe option relatively safer. **Commitment was never the binding constraint at this
+competence level** — P4.3 already put 70% of the gap on acquisition, and this is that
+number asserting itself through a different intervention.
+
+**Not attempted, and stated as specification rather than plan.** The remaining 70% is
+acquisition: pre-water EXPLORE 94.9% → 66.0%, `food_known` 45% against 92%. Nothing in this
+prototype has touched it, and it is now the larger term by more than a factor of two. A
+per-cause death penalty (`--death-penalty 5`) would separately test whether parking is a
+reward-scaling artefact, though P4.1's prediction of a basin and 03b's evidence both argue
+it is not.
+
+### P4.3 — commitment is worth ~30% of the gap, and it is the policy's commitment that matters
+
+**Bet.** P4.2 measured median GO_FOOD run length 1.0 against the oracle's 10.0 — options
+with termination beta=1 everywhere, which is to say primitive actions. If that collapse is
+the binding constraint, then forcing the module's own choices to persist should recover
+survival **without retraining**, because the decision content would be adequate and only
+its lifetime wrong. Horizon applied at inference to the existing `o0` weights. GO_* and
+EXPLORE held; CONSUME re-decided every tick (holding it would overfill — DRINK_AMOUNT=0.15
+needs ~4 ticks from ideal). Options also terminate on task condition: GO_* on arrival,
+EXPLORE on a memory slot flipping. Every one of those reads a field already in
+`OrchestratorObs`, so this changes when the module is asked, not what it can see.
+
+**Prediction.** Peak near the commute length (~10), falling after as stale intentions
+outlive their usefulness; `food_known` rises.
+
+**Result.** 24 seeds. `tests/orchestrator_hold_sweep_v1.py`.
+
+| arm | solveScore | Wilson | deaths | hyd/sat | w→f per life | food_known |
+|---|---|---|---|---|---|---|
+| oracle | 0.5053 | [0.43, 0.58] | 94 | 76/18 | 17.20 | 92.1% |
+| hold=1 (as trained) | 0.1683 | [0.13, 0.21] | 262 | 168/94 | 0.09 | 32.9% |
+| **hold=15** | **0.2689** | **[0.22, 0.33]** | 174 | 104/70 | 1.13 | 45.4% |
+| hold=20 | 0.2624 | [0.21, 0.32] | 194 | 122/70 | 1.31 | 53.3% |
+| hold=25 | 0.2259 | [0.18, 0.28] | 209 | 121/88 | 0.95 | 43.2% |
+| hold=40 | 0.2194 | [0.17, 0.27] | 217 | 137/79 | 1.31 | 50.8% |
+
+**hold=15 separates from hold=1** — [0.22, 0.33] against [0.13, 0.21], the first
+CI-separated positive result on this module. The shape is a clean inverted U with an
+interior optimum: inert at 1, peak at 15, monotone decline through 25 and 40. That is the
+argument P05-H3 used to tell a mechanism from a lucky maximum, and a noise max does not
+decline on both sides. The peak sits near commute length (band 9–11) plus arrival and
+consume overhead, so the horizon is tracking a real quantity. The prediction of ~10 was
+close but wrong, and at 8 seeds nothing separated at all — this needed n=24.
+
+**Control A — is it commitment, or just consulting a flat Q-function less often?**
+`--eps 1.0`: every re-decision is a uniform draw over legal actions, then held.
+
+| arm | solveScore | deaths | w→f per life | food_known |
+|---|---|---|---|---|
+| hold=1 + random | **0.0000** | 1017 | 0.03 | 35.9% |
+| hold=15 + random | **0.0000** | 1288 | 0.38 | 54.3% |
+
+Zero. Every life ends in death, and holding makes a random policy **worse**, not better.
+So persistence is not intrinsically valuable: it helps the learned policy and harms an
+arbitrary one. **The interaction is the result** — the Q-function carries real arbitration
+content and re-deciding every tick was destroying it.
+
+This also gives P4.1's "the module acquired a real policy, unlike the explorer" an
+evidential basis it did not have. There is now a measured floor for what no policy looks
+like on this task, and it is 0.0000 rather than the explorer's 0.1712 — holding a random
+*abstract* action means committing to GO_WATER while starving, which is far worse than a
+random walk.
+
+**Control A also kills the obvious second confound.** Held EXPLORE is temporally-extended
+exploration, which 05-H2 showed lifts crossing supply by itself. But the random arm reaches
+`food_known` **54.3%**, higher than the learned arm's 45.4%, and still survives zero percent
+of the time. Finding food is not what buys survival here.
+
+**Verdict: CONFIRMED at the mechanism, and bounded.** Commitment recovers
+(0.2689 − 0.1683) / (0.5053 − 0.1683) ≈ **30% of the gap to the oracle**. The remaining 70%
+is visible in the two acquisition numbers, which barely move: `food_known` 45% against 92%,
+and w→f per life 1.13 against 17.20 — still fifteen-fold short. So the gap decomposes into
+**at least two independent failures**, and commitment is the smaller one. The larger is the
+acquisition deficit P4.2 found (pre-water EXPLORE 94.9% → 66.0%), which the horizon does
+not touch.
+
+**What this is not.** The horizon is a **probe, not a fix** — it plays the role `noisy_oracle`
+plays elsewhere: a deliberately crude instrument establishing that an effect exists before
+building the real thing. Nothing here shows that a policy *trained* with commitment beats
+`o0`; this is an inference-time operator on weights trained without it. Nor is hold=15 a
+principled constant to ship. The next entry replaces the enforced horizon with a
+**deliberation cost** — a penalty on switching abstract action — which asks the sharper
+question the project is actually about: not *does commitment help* (answered, yes) but
+*can the module acquire commitment when persistence is merely cheaper rather than
+mandatory*.
+
+### P4.2 — the water-cult ratio was measured on the wrong denominator
+
+**How this one started, stated plainly because the format assumes otherwise.** Not as a
+scheduled hypothesis, and after the project had already been written up as finished. A
+render of the agent moving (`figures/make_agent_gif_v1.py`) showed the learned
+orchestrator stepping one hex off water and immediately returning, over and over, and
+never emitting GO_FOOD at all. That is not the policy P4.1 describes — one that "uses all
+four actions" and prefers water 7.6 to 1. The bet below was written to settle the
+discrepancy, but the observation came first. Everywhere else in this file the prediction
+precedes the data; here it did not, and pretending otherwise would be the retrofit the
+preamble forbids.
+
+**Bet.** P4.1 read the action shares as a preference. That reading assumes both policies
+chose from the same menu, and `Orchestrator.legal_mask` masks GO_FOOD unless `food_known`.
+Two readings, indistinguishable in the aggregate:
+
+- **PREFERENCE** — `food_known` often true, GO_FOOD legal and rarely chosen. A valuing
+  failure, and 05-H3's SIL archive is the on-target lever.
+- **TRAP** — `food_known` rarely true, so GO_FOOD is not in the menu and 7.6 : 1 is an
+  availability constraint. Consolidation cannot help: there is no crossing to consolidate.
+
+**Prediction.** Thresholds written into `verdict()` before the run: both-legal share
+below 5% → TRAP; `food_known` above 25% → PREFERENCE; between → raise the seed count and
+do not conclude.
+
+**Result.** 8 seeds, standing config, `tests/orchestrator_legality_v1.py`.
+
+| | oracle | learned `o0` |
+|---|---|---|
+| eval ticks with `water_known` | 89.6% | 83.6% |
+| eval ticks with `food_known` | **92.8%** | **32.1%** |
+| lives that ever found food | 66/75 | **59/119** |
+| ticks where both GO_* were legal | 86.5% | **22.3%** |
+| GO_WATER : GO_FOOD — raw, as published | 1.00 : 1 | 7.63 : 1 |
+| GO_WATER : GO_FOOD — both legal | 1.00 : 1 | **3.37 : 1** |
+| median GO_FOOD run length | 10.0 | **1.0** |
+| median GO_WATER run length | 10.0 | 4.0 |
+| GO_* issued while ON the named tile | **0.0%** | **41.5%** |
+| EXPLORE share, whole episode | 12.3% | 11.9% |
+| EXPLORE share, before first water | 94.9% | 66.0% |
+| EXPLORE share, after first water | 2.7% | 1.2% |
+
+**Verdict: PREFERENCE on the pre-registered call, and partial.** The module could pick
+food on a real share of ticks and did not, so SIL is not off-target. But the entry this
+corrects is P4.1's, not its own, and three published numbers move.
+
+**1. 7.63 : 1 is about half artefact.** Conditioned on legality it is 3.37 : 1 — still
+CI-separated from the oracle's 1.00, still a real lean toward water, and 2.3× smaller than
+the figure carried in `RESULTS.md`, both READMEs and `orchestrator_action_mix.png`. The
+constant block in `make_figures_v1.py` needs the same treatment as the invented-oracle-mix
+incident recorded below.
+
+**2. The larger effect is not arbitration.** `food_known` 92.8% → 32.1%, and only half its
+lives ever locate food at all. For two-thirds of its existence the module is not choosing
+between two drives; it is missing the option. That is an **acquisition** failure sitting
+upstream of the arbitration failure, and nothing in this ledger had named it.
+
+**3. Median GO_FOOD run length 10.0 → 1.0.** The oracle holds the goal for a whole
+commute. The learned module holds it for one tick, every time — the behaviour the render
+showed. GO_WATER degrades to 4.0, so it half-commits to water and does not commit to food
+at all. Incidentally this **calibrates a new metric before anything is trained against
+it**: a 1.0–10.0 span between a known-bad and known-good policy is an order of magnitude,
+against `solveScore`'s 0.478 on this axis and the consumer's 0.044.
+
+**4. P4.1's exploration claim does not survive being split by time.** "Its exploration
+share is within 0.004 of the oracle's" is true (11.9% vs 12.3%) and uninformative. Both
+policies stop exploring once water is known (1.2% vs 2.7%); the deficit is entirely in the
+search phase, **94.9% → 66.0%**, and the module finishes acquisition holding half a map.
+Same failure as 03b's mean comfort — an aggregate concealing a behavioural mode — which is
+a mistake this project has now made twice with two different statistics.
+
+**Composer defect, found by the same render.** GO_* emitted while standing on the tile it
+names still calls the pathfinder, with `to_goal = (0,0)`. All six directions tie at
+distance 1 and `OraclePathfinder`'s first-wins tie-break returns D0 every time, so the
+agent steps off and back next tick: a deterministic 2-cycle that looks like a departure.
+`OracleOrchestrator` never reaches this path — rule 1 fires CONSUME on a useful tile first
+— which is why 0.0% against 41.5%, and why no probe caught it. **All nine infrastructure
+probes run the oracle stack, so a path only a learned module can reach was never
+exercised.** Left unfixed for now: changing the mask changes behaviour and every Proto 06
+number with it.
+
+**What this does not overturn.** `o0` scores 0.1622 [0.105, 0.242] against the oracle's
+0.4776 [0.363, 0.595], CI-separated, on 93 eval deaths against 35. The module is worse and
+the verdict "learning it reproduces the pathology hand-tuning was introduced to avoid"
+stands. What is withdrawn is the *size* of the preference and the claim that arbitration
+is where the failure lives.
+
+**Two numbers this entry does not yet carry, pre-registered here.** The probe now also
+conditions the ratio on the agent standing on *neither* resource — the only ticks that are
+genuine travel decisions — and counts completed water→food crossings, which is SIL's
+precondition. Predictions: the off-tile ratio lands below 3.37 (jitter inflates GO_WATER),
+and crossings run under 0.5 per life, which would make an archive too thin to test with
+and would send the next lever upstream to acquisition rather than to consolidation.
+
+### P4.1 — VERDICT: the orchestrator learns, and learns the water-cult attractor
+
+**Bet.** Calibration passed decisively (P4.0) and the observation carries no aliasing, so
+arbitration should be the module RL can learn. Four-way abstract head (GO_WATER / GO_FOOD /
+CONSUME / EXPLORE) with exploration delegated, survival reward, fixed eval seeds,
+best-checkpoint.
+
+**Prediction.** Matches the oracle's 0.4776, possibly beats it given the crit_scale=1.5 hint.
+
+**Result.** Falsified. `o0` scores **0.1622 [0.105, 0.242]** against the oracle's 0.4776
+[0.363, 0.595] — CI-separated below. 93 eval deaths against 35.
+
+**But it did not fail the way the explorer failed, and the difference is the finding.**
+
+Action shares over the eval segment, 8 seeds (`tests/action_mix_v1.py`):
+
+| action | oracle | learned |
+|---|---|---|
+| GO_WATER | 0.342 | **0.571** |
+| GO_FOOD | 0.342 | **0.075** |
+| CONSUME | 0.192 | 0.235 |
+| EXPLORE | 0.123 | 0.119 |
+| **GO_WATER : GO_FOOD** | **1.0 : 1** | **7.6 : 1** |
+
+Deaths split hydration 62 / satiation 31 against the oracle's 29 / 6. The policy uses all four
+actions — it is not collapsed, not uniform, not random, and its exploration share (0.119) nearly
+matches the oracle's (0.123). It learned a **coherent, structured arbitration policy that prefers
+water seven to one, and then dies of thirst at twice the oracle's rate.**
+
+The oracle arbitrates at **exactly 1:1** between the two drives. That is the comparison the whole
+verdict rests on, and it is the number that makes the attractor legible.
+
+**That is the water-cult attractor, reproduced under decomposition.** Prototype 03b identified it
+in a monolithic DQN on a fixed radius-5 map: seeds that camp near water, protect hydration, and
+never cross the comfort valley to food. Three prototypes later it reappears in a module whose
+*only* job is choosing between two drives, with a continuous non-aliased observation, competent
+oracle execution beneath it, and a pure survival reward.
+
+**So the attractor is not an artifact of end-to-end learning.** It survives isolation of the
+decision from everything else. Water is nearer, encountered more often, and cheaper to reach, so
+a value function trained on survival converges on it — and the resulting policy dies of the drive
+it over-protects, because time spent securing water is time not spent finding food.
+
+**Verdict.** Arbitration is *learnable* — the module acquired a real policy, unlike the explorer,
+which never left uniform. What it learned is the known-bad basin the project has been fighting
+since 03b. The honest claim is not "the orchestrator cannot be learned" but "learning it
+reproduces the pathology hand-tuning was introduced to avoid."
+
+Training was also unstable on fixed eval seeds (solveScore 0.076 / 0.073 / 0.039 / 0.029 / 0.000
+/ 0.103; CONSUME share swinging 0.10 → 0.70 → 0.21), consistent with every other module in this
+prototype.
+
+**Not attempted, and worth stating as the obvious next lever:** hydration deaths outnumber
+satiation deaths 2:1, so a per-cause death penalty — or simply a larger one — would test whether
+the attractor is a reward-scaling artifact or a genuine basin. The prediction is that it is a
+basin: 03b already established that credit-assignment tweaks do not break it, and that the
+binding constraint is the experience distribution rather than the value estimate.
+
+**Harness bug found and fixed.** `score()` called `orch_kw.pop("_impl")` inside the seed loop on
+the caller's dict, so seed 0 consumed the key and every later seed silently fell back to
+`noisy_oracle` while still carrying `weights`. Mutating an argument inside a loop over it.
+
+**Figure integrity note.** The first draft of `make_figures_v1.py` carried an INVENTED oracle
+action mix — the oracle's shares had never been measured, and plausible-looking numbers were put
+in to draw a comparison bar. Caught by reading the constants and asking where each came from, not
+by any probe: the apparatus catches silent failures in RUNS, not fabricated inputs. Measuring it
+properly (`tests/action_mix_v1.py`, 30 seconds) gave a sharper result than the guess — the
+invented oracle sat at 1.17:1 with EXPLORE at 0.29 against a true 1.0:1 and 0.123. Every constant
+block in that file now carries its provenance.
+
+### P4.0 — orchestrator calibration: GO, and the hand-tuned threshold may be beatable
+
+**Bet.** The orchestrator's observation (h, s, known flags, tile levels) is continuous and
+directly informative about the decision it makes, with no perceptual aliasing — the failure mode
+that killed the explorer structurally does not apply. Calibrate before training.
+
+**Result, 8 seeds.** Two axes: `epsilon` (random legal action) and `crit_scale` (multiplier on
+the critical-drive interrupt thresholds).
+
+| epsilon | solveScore | deaths | | crit_scale | solveScore | deaths |
+|---|---|---|---|---|---|---|
+| 0 | 0.4776 | 35 | | 0.0 | 0.3721 | 54 |
+| 0.05 | 0.4366 | 40 | | 0.5 | 0.3444 | 59 |
+| 0.15 | 0.4267 | 43 | | **1.0 (baseline)** | 0.4776 | 35 |
+| 0.35 | 0.2066 | 96 | | **1.5** | **0.5926** | **22** |
+| 0.70 | **0.0000** | 382 | | 3.0 | 0.2347 | 75 |
+
+**`solveScore` is monotone on the epsilon axis across a dynamic range of 0.478** — the largest of
+any module (explorer 0.362, consumer 0.044). This is the most measurable module in the prototype.
+
+The `crit_scale` axis is a clean inverted U with an **interior optimum**, and both failure modes
+are the predicted ones: at 0 the interrupt never fires and hydration deaths rise 29 → 45; at 3.0
+it fires constantly and `water_visit_pct` hits **80.9%** — the agent camps on the known drive
+instead of exploring. `crit_scale=3.0` [0.162, 0.328] separates from the baseline
+[0.363, 0.595], so the arbitration decision is demonstrably consequential.
+
+**Bonus, not yet a result.** `crit_scale=1.5` scores 0.5926 (22 deaths) against the hand-tuned
+0.4776 (35). The CIs overlap at 8 seeds so this is not established — but the hand-tuned interrupt
+threshold may not sit at its optimum, which would give a learned orchestrator something real to
+beat rather than merely match.
+
+**Harness correction, recorded because changing a test after seeing its output is how thresholds
+stop meaning anything.** The first version demanded that `crit_scale=0` separate from the
+baseline, anchored on the recorded effect "hydration deaths 43 → 10". That figure was measured
+under a *different* configuration — this baseline carries 29 hydration deaths, not 13 — so the
+anchor was mis-specified against a stale number and returned NO-GO. The replacement asks whether
+*any* point on the arbitration axis separates, which is the question the anchor was always trying
+to ask. The PRIMARY criterion — a monotone detector with usable range — is unchanged and passed
+independently of it.
+
+**Verdict: GO.** Train with a survival-based reward (comfort is flat across the tolerance band and
+cannot grade decisions made inside it — see P2), fixed eval seeds, best-checkpoint selection, and
+3 seeds. Hard stop after two failed configurations.
 
 ### P3.4 — VERDICT: the explorer is not learnable on this observation contract
 
@@ -758,7 +1149,8 @@ whose Wilson interval separates from the baseline's.
 
 **Learning has nothing to add where a five-parameter search suffices.** That is the finding.
 
-**Specification for Proto 07.** Give the explorer state a heuristic cannot cheaply express:
+**Specification for any follow-up — not a scheduled prototype.** Give the explorer state a
+heuristic cannot cheaply express:
 visit counts, a decaying coverage trace, or an episodic novelty signal. Count-based novelty
 is already convicted as a winner in 03b (β=0.1) and leaks no resource locations, so it stays
 inside the honesty boundary. Only once the policy class contains something beyond a tuned
