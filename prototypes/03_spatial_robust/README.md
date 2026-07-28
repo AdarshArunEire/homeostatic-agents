@@ -8,13 +8,13 @@ The world grew from radius 3 to radius 5, with water at (−5, 0) and food at (0
 
 The old comfort surface was isotropic around the ideal point:
 
-```math
+$$
 d^{2} = (h - h_{\mathrm{ideal}})^{2} + (s - s_{\mathrm{ideal}})^{2}
-```
+$$
 
-```math
+$$
 C(h,s) = 2e^{-k d^{2}} - 1
-```
+$$
 
 Direction of error doesn't matter: a unit of useful buffer costs exactly as much as a unit of dangerous deficit. That was fine when `eat` and `drink` were one or two moves away and every deviation really was a mistake. On the larger map it punishes the thing the agent must do to survive the journey.
 
@@ -65,11 +65,11 @@ Because both variants showed it, this isn't a vanilla-vs-double conclusion. The 
 
 The squared distance is split into under- and over-components, and only the over-component is discounted:
 
-```math
+$$
 d^2 = h_\text{under}^2 + \lambda\, h_\text{over}^2 + s_\text{under}^2 + \lambda\, s_\text{over}^2, \qquad \lambda = 0.3
-```
+$$
 
-with the same exponential mapping $`C = 2e^{-3 d^2} - 1`$. In the sim this is exactly:
+with the same exponential mapping $C = 2e^{-3 d^2} - 1$. In the sim this is exactly:
 
 ```python
 d2 = h_under**2 + lam * h_over**2 + s_under**2 + lam * s_over**2

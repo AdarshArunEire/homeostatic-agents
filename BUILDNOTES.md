@@ -70,13 +70,13 @@ The state space needed to grow beyond one hydration axis. Later prototypes neede
 
 In a tabular Q-table, each extra discretised state axis multiplies the number of values that must be stored and explored.
 
-If each state axis has $`b`$ bins and there are $`d`$ state dimensions, then the table grows exponentially:
+If each state axis has $b$ bins and there are $d$ state dimensions, then the table grows exponentially:
 
-```math
+$$
 N_Q = |\mathcal{A}| b^d
-```
+$$
 
-where $`N_Q`$ is the number of stored Q-values, $`|\mathcal{A}|`$ is the number of actions, $`b`$ is the number of bins per state axis, and $`d`$ is the number of state dimensions.
+where $N_Q$ is the number of stored Q-values, $|\mathcal{A}|$ is the number of actions, $b$ is the number of bins per state axis, and $d$ is the number of state dimensions.
 
 This becomes impractical quickly. It also means neighbouring states do not naturally share information: the agent has to separately explore similar bins instead of learning a smoother relationship across the state space.
 
@@ -179,7 +179,7 @@ Full folder: [`02_spatial_dqn`](prototypes/02_spatial_dqn)
 
 Prototype 3 pushed the spatial task from the smaller radius-3 world into a radius-5 world.
 
-Water moved to $`(-5,0)`$ and food moved to $`(0,5)`$. The trip between them was now long enough that any surviving policy had to overfill before travelling: top up hydration before walking to food, and top up satiation before walking back.
+Water moved to $(-5,0)$ and food moved to $(0,5)$. The trip between them was now long enough that any surviving policy had to overfill before travelling: top up hydration before walking to food, and top up satiation before walking back.
 
 Travel buffers became part of the task.
 
@@ -195,9 +195,9 @@ The scaling function was chosen to roughly match:
 
 with a floor so decay never disappears completely:
 
-```math
+$$
 g(R) = 0.05 + \frac{1.45}{(1 + 1.0426(R - 1))^{0.7122}}
-```
+$$
 
 Implemented as:
 
@@ -210,11 +210,11 @@ satiation_decay_scaling = 0.9 * hydration_decay_scaling
 
 The old comfort surface was isotropic around the ideal point:
 
-```math
+$$
 d^2 = (h - h^\star)^2 + (s - s^\star)^2,
 \qquad
 C(h,s) = 2e^{-kd^2} - 1
-```
+$$
 
 That became wrong in the radius-5 world.
 
@@ -224,10 +224,10 @@ That shared failure was a reward problem, not a model problem.
 
 So I split the squared distance and discounted only the over-fill component:
 
-```math
+$$
 d^2 = h_{\text{under}}^2 + \lambda\, h_{\text{over}}^2 + s_{\text{under}}^2 + \lambda\, s_{\text{over}}^2,
 \qquad \lambda = 0.3
-```
+$$
 
 keeping the same exponential mapping.
 
@@ -294,7 +294,7 @@ The first 3b attempt tried to reduce learning noise directly:
 * Double DQN for value stability
 * n-step returns for long-horizon credit assignment
 * tuned death penalties
-* larger $`\gamma`$
+* larger $\gamma$
 
 This did help in one sense. Some settings reduced seed spread dramatically. For example, vanilla 1-step varied from −0.69 to 0.57 comfort, while Double DQN with 10-step returns compressed into a much tighter band: 0.22 to 0.25 comfort.
 
@@ -347,9 +347,9 @@ It was:
 
 ### Hypothesis 4 — NoisyNet sigma collapse
 
-**Bet:** novelty might help because NoisyNet $`\sigma`$ collapses toward zero, stopping discovery.
+**Bet:** novelty might help because NoisyNet $\sigma$ collapses toward zero, stopping discovery.
 
-**What happened:** logged $`\sigma`$ rose rather than collapsed.
+**What happened:** logged $\sigma$ rose rather than collapsed.
 
 The likely reason is that the target remained non-stationary under drive cycles, local reward changes, and changing replay distribution. The agent was not becoming calmly certain and then freezing exploration. The instability was more complicated than that.
 
@@ -390,11 +390,11 @@ The issue is not only that useful transitions disappear. Old transitions can bec
 The best current configuration uses:
 
 * Noisy DQN
-* count-based novelty, $`\beta = 0.1`$
+* count-based novelty, $\beta = 0.1$
 * 50k replay buffer
 * 10-step returns
 * comfort-v3 surface
-* $`\gamma = 0.99`$
+* $\gamma = 0.99$
 * 100 seeds
 
 Headline:

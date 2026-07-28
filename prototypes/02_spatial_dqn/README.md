@@ -1,20 +1,20 @@
 # Prototype 2
 
-The world is a hex grid. Water and food sit at fixed locations, hydration and satiation decay over time, and the agent only sees its local surroundings. Regulation is no longer free: the agent has to physically move between resources to keep $`x`$ near $`x^\star`$, so staying alive becomes a spatial problem as much as a control one.
+The world is a hex grid. Water and food sit at fixed locations, hydration and satiation decay over time, and the agent only sees its local surroundings. Regulation is no longer free: the agent has to physically move between resources to keep $x$ near $x^\star$, so staying alive becomes a spatial problem as much as a control one.
 
 The agent is a PyTorch DQN with local observations and action masking. It learns a movement-and-consumption policy that keeps it alive across long episodes, choosing only from the actions the environment marks valid at each step.
 
 ### Environment
 
-- a hex world with radius $`r = 3`$
-- fixed water and food cells: $`\text{water} = (-3, 0)`$, $`\text{food} = (0, 3)`$
-- an internal state $`x = (h, s)`$, where $`h`$ is hydration and $`s`$ is satiation
-- a setpoint $`x^\star = (1, 1)`$, where comfort is highest
+- a hex world with radius $r = 3$
+- fixed water and food cells: $\text{water} = (-3, 0)$, $\text{food} = (0, 3)$
+- an internal state $x = (h, s)$, where $h$ is hydration and $s$ is satiation
+- a setpoint $x^\star = (1, 1)$, where comfort is highest
 - internal decay each tick, driven by the environment
-- death when $`\min(h, s) \le 0`$
+- death when $\min(h, s) \le 0$
 - partial observability: the agent sees a local neighbourhood and its own internal state, not the whole map
 - delayed effects: drinking and eating do not behave like instant abstract buttons; action effects pass through the environment dynamics before fully affecting state
-- action masking: for the observed/input state $`z`$, only a subset $`\mathcal{A}(z) \subseteq \mathcal{A}`$ is valid
+- action masking: for the observed/input state $z$, only a subset $\mathcal{A}(z) \subseteq \mathcal{A}$ is valid
 
 Valid actions depend on the physical world:
 
@@ -32,33 +32,33 @@ The agent is a DQN in PyTorch.
 
 It approximates the action-value function:
 
-```math
+$$
 Q(z, a)
-```
+$$
 
-where $`z`$ is the input state observed by the controller.
+where $z$ is the input state observed by the controller.
 
 At evaluation time, the agent selects the highest-valued valid action:
 
-```math
+$$
 \arg\max_{a \in \mathcal{A}(z)} Q(z, a)
-```
+$$
 
 The training target is the masked Bellman target:
 
-```math
+$$
 y = r + \gamma \max_{a' \in \mathcal{A}(z')} Q_{\theta^-}(z', a')
-```
+$$
 
-where $`\theta^-`$ is the target network. Terminal states are masked out of the bootstrap, so $`y = r`$ when $`z'`$ is terminal.
+where $\theta^-$ is the target network. Terminal states are masked out of the bootstrap, so $y = r$ when $z'$ is terminal.
 
 The training setup includes:
 
 - experience replay
 - replay warmup
 - target network updates
-- $`\varepsilon`$-greedy exploration during training
-- final greedy evaluation with exploration disabled ($`\varepsilon = 0`$)
+- $\varepsilon$-greedy exploration during training
+- final greedy evaluation with exploration disabled ($\varepsilon = 0$)
 - action masking in both training and evaluation
 
 The learned policy commutes between water and food, drinking and eating in turn, instead of starving, dehydrating, or wandering into unused regions of the map.
@@ -73,21 +73,21 @@ This is the upper-median run from the current best training-length region.
 
 Config:
 
-- map radius: $`r = 3`$
-- water: $`(-3, 0)`$
-- food: $`(0, 3)`$
-- discount factor: $`\gamma = 0.95`$
-- exploration: $`\varepsilon = 0.2`$
-- batch size: $`512`$
-- replay buffer: $`5000`$
-- warmup: $`500`$
-- target update interval: $`50`$
-- training length: $`500{,}000`$ ticks
+- map radius: $r = 3$
+- water: $(-3, 0)$
+- food: $(0, 3)$
+- discount factor: $\gamma = 0.95$
+- exploration: $\varepsilon = 0.2$
+- batch size: $512$
+- replay buffer: $5000$
+- warmup: $500$
+- target update interval: $50$
+- training length: $500{,}000$ ticks
 
 Representative result:
 
-- mean comfort: $`\approx 0.584`$
-- evaluation deaths: $`16`$
+- mean comfort: $\approx 0.584$
+- evaluation deaths: $16$
 
 <p>
   <img src="results/best_figures/hex_occupancy_len500k_seed4.png" width="700">
@@ -112,7 +112,7 @@ This shows that the policy is not only learning *when* to drink and eat. It is l
 
 The phase-density plot shows the internal-state behaviour during evaluation.
 
-The policy does not hold the agent exactly at $`x^\star`$. Instead, it forms a noisy stable region around the setpoint. That is expected: the agent is operating under decay, movement constraints, delayed action effects, and limited local observation.
+The policy does not hold the agent exactly at $x^\star$. Instead, it forms a noisy stable region around the setpoint. That is expected: the agent is operating under decay, movement constraints, delayed action effects, and limited local observation.
 
 The density leans toward higher hydration. This is useful rather than mysterious. Water and food are not symmetric in the transition dynamics, so the learned route favours frequent water correction and less frequent food correction.
 
@@ -162,11 +162,11 @@ The next improvement is:
 
 ## Interpretation
 
-Comfort here, approximately $`0.58`$, is lower than the earlier non-spatial prototype because the problem is now stricter.
+Comfort here, approximately $0.58$, is lower than the earlier non-spatial prototype because the problem is now stricter.
 
 In the non-spatial version, `drink` and `eat` were abstract actions. The agent could regulate directly.
 
-In the spatial version, corrective actions require movement. The agent pays a travel cost in time and decay before it can restore hydration or satiation. It cannot hold both axes exactly at $`x^\star`$ all the time because access to food and water is physically separated.
+In the spatial version, corrective actions require movement. The agent pays a travel cost in time and decay before it can restore hydration or satiation. It cannot hold both axes exactly at $x^\star$ all the time because access to food and water is physically separated.
 
 That is the point of Prototype 2.
 
