@@ -15,9 +15,7 @@ becomes less stationary and less forgiving.
   space between the halos is the <strong>dead band</strong>: the middle of the commute, where
   neither resource can be detected. That gap is what the whole project turned out to be about.
   <br><br>
-  Hand-written reactive stack (solveScore 0.48), seed 1, picked because it looks nice. An
-  illustration, not a result — the results are in <a href="RESULTS.md">RESULTS.md</a>. Regenerate
-  with <code>python figures/make_agent_gif_v1.py --seed 1</code>.</em></sub>
+  Hand-written reactive stack (solveScore 0.48), seed 1
 </p>
 
 ---
@@ -51,7 +49,7 @@ approach) were each falsified in turn, narrowing the failure to one mechanism: t
 self-commit to a directed crossing of the **dead band** — a 3–5 hex stretch mid-commute where
 neither resource is detectable.
 
-**Then we decomposed it.** Prototype 06 splits the agent into four modules — orchestrator,
+**Then I decomposed it.** Prototype 06 splits the agent into four modules — orchestrator,
 pathfinder, consumer, explorer — and learns each separately. Navigation becomes provably optimal.
 Exploration turns out not to be learnable at all on its observation contract. And arbitration —
 the module that chooses between the two drives — *does* learn a coherent policy, then converges
