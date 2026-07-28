@@ -23,7 +23,7 @@ class a five-parameter heuristic already occupies optimally.
 | pathfinder | **solved** | 1.0000 optimality on every operational band, 3-seed reproducible, +0.000 solveScore delta in-sim over 34,859 invocations |
 | drink consumer | **learnable, but unmeasurable** | certified out-of-sample (37 deaths vs oracle 35); environment cannot resolve it |
 | eat consumer | **untrained** — starved by construction | 0 dispatches in 1200 nondoomed ticks; finding food is the phenomenon |
-| orchestrator | **learns — and learns the water-cult attractor** | 0.1622 vs oracle 0.4776; GO_WATER 9:1 over GO_FOOD, then dies of thirst |
+| orchestrator | **learns — and cannot hold an intention** | 0.1622 vs oracle 0.4776; median GO_FOOD run length 1.0 against 10.0 |
 | explorer | **not learnable on this contract** | 5 methods, all at or below the random floor |
 
 The two failures are not the same failure. The explorer never left uniform random — it acquired
@@ -34,10 +34,43 @@ observation, oracle execution beneath it, and a pure survival reward. **The attr
 property of the task, not of end-to-end learning.**
 
 <p>
-  <img src="results/best_figures/orchestrator_action_mix.png" width="620">
+  <img src="results/best_figures/orchestrator_action_mix.png" width="820">
   <br>
-  <sub><em>The learned orchestrator chooses water nine times more often than food — and then
-  dies of thirst, because time spent securing water is time not spent finding food.</em></sub>
+  <sub><em>The oracle arbitrates at exactly 1:1 between the two drives. The learned policy
+  chooses water 7.6:1 — and dies of thirst at twice the rate. Both numbers are kept as first
+  measured, and both mislead. P4.2 shows GO_FOOD is masked illegal most of the time, so half
+  that ratio is availability rather than preference.</em></sub>
+</p>
+
+<p>
+  <img src="results/best_figures/arbitration_denominator.png" width="560">
+  <br>
+  <sub><em>The same policy under three denominators. Conditioning on GO_FOOD actually being
+  legal more than halves the apparent preference; conditioning further on the agent standing
+  on neither resource sends it to 24:1, because most GO_FOOD is emitted on the water tile and
+  abandoned one tick later. The oracle is 1.0:1 under all three.</em></sub>
+</p>
+
+<p align="center">
+  <img src="results/best_figures/commitment_alive.gif" width="900">
+</p>
+
+<p align="center">
+  <sub><em>The same weights on the same map, differing only in how often the argmax is
+  consulted. Left, as trained: it picks GO_FOOD on the water tile, takes one step, and turns
+  back — median run length 1.0. Right, with the option held for 15 ticks: it crosses. Nothing
+  was retrained between these two panels. Hand-picked seed; the numbers are below.</em></sub>
+</p>
+
+<p>
+  <img src="results/best_figures/commitment.png" width="900">
+  <br>
+  <sub><em>Left: the same weights, re-evaluated with an option horizon imposed at inference.
+  An interior optimum near commute length, CI-separated from the uncommitted control, and a
+  random option held for the same horizon scores zero — so it is commitment to <em>these</em>
+  choices that matters, not persistence itself. Right: replacing the imposed horizon with a
+  learned one. A switching cost cannot tell following through from standing still, and the
+  policy takes the second.</em></sub>
 </p>
 
 <p>
@@ -208,12 +241,28 @@ never acquired the most valuable available behaviour.
 - **Never relax a pre-registered threshold.** The 0.99 pathfinder gate failed three runs
   before a properly selected module scored 1.0000. The gate was right; the training was not.
 
-## Stopping point and Proto 07
+## Stopping point
 
 The decomposition works for exploitation and does not rescue exploration. That is the result.
 
-Proto 07 must give the explorer state a heuristic cannot cheaply express: visit counts, a
-decaying coverage trace, or episodic novelty. Count-based novelty is already convicted as a
-winner in 03b (β=0.1) and leaks no resource locations, so it stays inside the honesty
-boundary. Only once the policy class contains something beyond a tuned correlated walk does
-"can it be learned?" become a question worth asking again.
+The orchestrator thread closes one layer down from where it started. What looked like a
+preference for water turned out to be two things: an option that terminates every tick, and
+a map that never gets finished. Imposing commitment recovers about a third of the gap and is
+confirmed against a random control. Paying for commitment recovers none of it, because the
+cheapest way to stop switching is to stop moving. The remaining two thirds is acquisition,
+and nothing here has touched it.
+
+**What would have to change, stated as a specification rather than a plan.** The explorer needs
+state a heuristic cannot cheaply express: visit counts, a decaying coverage trace, or episodic
+novelty. Count-based novelty is already convicted as a winner in 03b (β=0.1) and leaks no
+resource locations, so it stays inside the honesty boundary. Only once the policy class contains
+something beyond a tuned correlated walk does "can it be learned?" become a question worth asking
+again.
+
+The orchestrator's next lever is separate and cheaper: hydration deaths outnumber satiation
+deaths 2:1, so a per-cause death penalty would test whether the water-cult attractor is a
+reward-scaling artifact or a genuine basin. 03b's evidence suggests a basin — credit-assignment
+tweaks never broke it there either.
+
+**The project stops here.** Both are specifications for whoever picks this up, including a later
+version of the author; neither is scheduled.

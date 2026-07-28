@@ -76,13 +76,59 @@ CEILING = {
                           [0.4267, 0.4444, 0.4848, 0.4776, 0.4384], 0.75),
 }
 
-ORCH_MIX = [("GO_WATER", 0.537), ("GO_FOOD", 0.061), ("CONSUME", 0.206), ("EXPLORE", 0.196)]
-ORACLE_MIX = [("GO_WATER", 0.28), ("GO_FOOD", 0.24), ("CONSUME", 0.19), ("EXPLORE", 0.29)]
+# Orchestrator action shares, EVAL SEGMENT, 8 seeds — measured by tests/action_mix_v1.py.
+#
+# The oracle's mix had never been recorded before that script existed; an earlier draft of
+# this file carried invented values for it. Measuring took 30 seconds and the real contrast is
+# sharper than the guess: the oracle arbitrates at exactly 1.0:1 between the two drives.
+#
+# Note the learned shares here differ slightly from the training log (0.537/0.061/0.206/0.196)
+# because that figure pooled the whole run; these are eval-segment only, matching every other
+# number in the ledger.
+ORCH_MIX = [("GO_WATER", 0.571), ("GO_FOOD", 0.075), ("CONSUME", 0.235), ("EXPLORE", 0.119)]
+ORACLE_MIX = [("GO_WATER", 0.342), ("GO_FOOD", 0.342), ("CONSUME", 0.192), ("EXPLORE", 0.123)]
+ORCH_CAUSES = [("hydration", 62), ("satiation", 31)]
+ORACLE_CAUSES = [("hydration", 29), ("satiation", 6)]
 
-# learned performance as a fraction of the oracle it replaced
+# CORRECTED IN P4.2 — the raw 7.6:1 read off ORCH_MIX above is not an arbitration ratio.
+# GO_FOOD is masked illegal unless food_known, and the learned module holds food_known on
+# only 32.1% of eval ticks against the oracle's 92.8%. Conditioning progressively:
+#
+#   7.63 : 1   raw, as originally published        <- overstates by 2.3x
+#   3.37 : 1   restricted to ticks where BOTH GO_* were legal
+#  24.22 : 1   ...and standing on NEITHER resource (the only genuine travel decisions)
+#
+# The last is the honest arbitration number and it is far WORSE than the headline, because
+# most GO_FOOD is emitted while still standing on water and abandoned one tick later.
+# Source: tests/orchestrator_legality_v1.py, 8 seeds.
+ORCH_RATIOS = [("raw\n(as published)", 7.63), ("both GO_*\nlegal", 3.37),
+               ("...and off\nany resource", 24.22)]
+
+# P4.3 — enforced commitment horizon at INFERENCE on the existing o0 weights. 24 seeds.
+# tests/orchestrator_hold_sweep_v1.py. Wilson intervals as printed.
+ORACLE_24 = (0.5053, (0.43, 0.58))
+HOLD_SWEEP = [(1, 0.1683, (0.13, 0.21)), (15, 0.2689, (0.22, 0.33)),
+              (20, 0.2624, (0.21, 0.32)), (25, 0.2259, (0.18, 0.28)),
+              (40, 0.2194, (0.17, 0.27))]
+# Control A: uniform-random legal option, then held. Zero at both horizons — persistence is
+# not intrinsically valuable, it helps THIS policy and harms an arbitrary one.
+HOLD_RANDOM = [(1, 0.0000), (15, 0.0000)]
+
+# P4.4 — deliberation cost, learned rather than enforced. Monotone toward degeneracy:
+# every arm collapses onto CONSUME and dies of thirst standing on food.
+# (delib_cost, CONSUME share, CONSUME dwell in ticks)
+DELIB = [(0.000, 0.235, 1.0), (0.002, 0.573, 30.4), (0.020, 0.789, 307.2)]
+
+# Learned performance as a fraction of the oracle it replaced.
+#   drink        0.4638 / 0.4776   (consumer_sensitivity)
+#   orchestrator 0.1622 / 0.4776   (orchestrator_sensitivity)
+#   explorer     0.1059 / 0.4776   (best held-out DQN seed)
+# The pathfinder is on a DIFFERENT basis: it has no solveScore of its own, and 1.000 records
+# a +0.000 in-sim delta against the oracle over 34,859 invocations. Same conclusion, different
+# measurement — noted rather than blended silently.
 MODULE_GAP = [
     ("pathfinder", 1.000),
-    ("drink consumer", 0.972),
+    ("drink consumer", 0.971),
     ("orchestrator", 0.340),
     ("explorer", 0.222),
 ]
@@ -230,20 +276,31 @@ def fig_reactive_ceiling():
 
 
 def fig_orchestrator_mix():
-    """The water-cult attractor, shown rather than described."""
-    fig, ax = plt.subplots(figsize=(6.4, 3.6))
+    """The water-cult attractor: oracle arbitrates 1:1, the learned policy 7.6:1."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9, 3.3),
+                                   gridspec_kw={"width_ratios": [1.7, 1]})
 
-    labels = [n for n, _ in ORCH_MIX]
+    labels = [n for n, _ in ORACLE_MIX]
     x = np.arange(len(labels))
-    ax.bar(x - 0.19, [v for _, v in ORACLE_MIX], 0.38, color=ORACLE, label="oracle")
-    ax.bar(x + 0.19, [v for _, v in ORCH_MIX], 0.38, color=LEARNED, label="learned")
+    ax1.bar(x - 0.19, [v for _, v in ORACLE_MIX], 0.38, color=ORACLE, label="oracle")
+    ax1.bar(x + 0.19, [v for _, v in ORCH_MIX], 0.38, color=LEARNED, label="learned")
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(labels, fontsize=8.5, rotation=15)
+    ax1.set_ylabel("share of decisions")
+    ax1.legend(frameon=False, fontsize=9)
+    ax1.set_title("what it chose", fontsize=10)
+    ax1.grid(axis="y", alpha=0.25)
 
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels, fontsize=9)
-    ax.set_ylabel("share of decisions")
-    ax.legend(frameon=False, fontsize=9)
-    ax.set_title("orchestrator action mix", fontsize=10)
-    ax.grid(axis="y", alpha=0.25)
+    cnames = [n for n, _ in ORCH_CAUSES]
+    cx = np.arange(len(cnames))
+    ax2.bar(cx - 0.19, [v for _, v in ORACLE_CAUSES], 0.38, color=ORACLE)
+    ax2.bar(cx + 0.19, [v for _, v in ORCH_CAUSES], 0.38, color=LEARNED)
+    ax2.set_xticks(cx)
+    ax2.set_xticklabels(cnames, fontsize=9)
+    ax2.set_ylabel("eval deaths")
+    ax2.set_title("what killed it", fontsize=10)
+    ax2.grid(axis="y", alpha=0.25)
+
     fig.tight_layout()
     save(fig, "orchestrator_action_mix")
 
@@ -269,6 +326,75 @@ def fig_module_gap():
     save(fig, "module_gap")
 
 
+def fig_arbitration_denominator():
+    """The published ratio, and what conditioning on legality does to it (P4.2)."""
+    fig, ax = plt.subplots(figsize=(6.0, 3.4))
+
+    names = [n for n, _ in ORCH_RATIOS]
+    vals = [v for _, v in ORCH_RATIOS]
+    cols = [NEUTRAL, ORACLE, LEARNED]
+    ax.bar(range(len(names)), vals, width=0.55, color=cols)
+    ax.axhline(1.0, color="0.3", ls="--", lw=1)
+    ax.text(2.42, 1.15, "oracle 1.0:1", fontsize=8, color="0.3", ha="right")
+
+    for i, v in enumerate(vals):
+        ax.text(i, v + 0.6, f"{v:.2f}:1", ha="center", fontsize=9)
+
+    ax.set_xticks(range(len(names)))
+    ax.set_xticklabels(names, fontsize=8.5)
+    ax.set_ylim(0, 27)
+    ax.set_ylabel("GO_WATER : GO_FOOD")
+    ax.set_title("the same policy, three denominators", fontsize=10)
+    ax.grid(axis="y", alpha=0.25)
+    fig.tight_layout()
+    save(fig, "arbitration_denominator")
+
+
+def fig_commitment():
+    """P4.3 enforced horizon (works) beside P4.4 deliberation cost (degenerates)."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 3.8))
+
+    xs = [h for h, _, _ in HOLD_SWEEP]
+    ys = [v for _, v, _ in HOLD_SWEEP]
+    lo = [v - c[0] for _, v, c in HOLD_SWEEP]
+    hi = [c[1] - v for _, v, c in HOLD_SWEEP]
+    ax1.errorbar(xs, ys, yerr=[lo, hi], fmt="o-", color=LEARNED, capsize=3,
+                 lw=1.6, ms=5, label="learned o0, held")
+
+    rx = [h for h, _ in HOLD_RANDOM]
+    ry = [v for _, v in HOLD_RANDOM]
+    ax1.plot(rx, ry, "s--", color=NEUTRAL, ms=5, lw=1.2,
+             label="random option, held (control)")
+
+    ax1.axhline(ORACLE_24[0], color=ORACLE, ls="--", lw=1.2)
+    ax1.text(40, ORACLE_24[0] + 0.012, "oracle", fontsize=8, color=ORACLE, ha="right")
+    ax1.set_xlabel("commitment horizon (ticks)")
+    ax1.set_ylabel("solveScore")
+    ax1.set_ylim(-0.03, 0.60)
+    ax1.set_title("enforced: interior optimum near commute length", fontsize=10)
+    ax1.legend(fontsize=8, loc="center right")
+    ax1.grid(alpha=0.25)
+
+    dx = [d for d, _, _ in DELIB]
+    dc = [c for _, c, _ in DELIB]
+    dw = [w for _, _, w in DELIB]
+    ax2.plot(dx, dc, "o-", color=LEARNED, lw=1.6, ms=5)
+    for x, c, w in zip(dx, dc, dw):
+        ax2.annotate(f"dwell {w:.0f}", (x, c), textcoords="offset points",
+                     xytext=(6, -11), fontsize=8, color="0.35")
+    ax2.axhline(ORACLE_MIX[2][1], color=ORACLE, ls="--", lw=1.2)
+    ax2.text(0.019, ORACLE_MIX[2][1] + 0.02, "oracle CONSUME share",
+             fontsize=8, color=ORACLE, ha="right")
+    ax2.set_xlabel("deliberation cost per switch")
+    ax2.set_ylabel("CONSUME share of eval ticks")
+    ax2.set_ylim(0, 0.9)
+    ax2.set_title("learned: monotone collapse into standing still", fontsize=10)
+    ax2.grid(alpha=0.25)
+
+    fig.tight_layout()
+    save(fig, "commitment")
+
+
 def main():
     print("figures ->", OUT)
     fig_explorer_ladder()
@@ -278,6 +404,8 @@ def main():
     fig_reactive_ceiling()
     fig_orchestrator_mix()
     fig_module_gap()
+    fig_arbitration_denominator()
+    fig_commitment()
 
 
 if __name__ == "__main__":

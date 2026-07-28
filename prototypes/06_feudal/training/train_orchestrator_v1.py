@@ -59,7 +59,7 @@ from model_modules.learned_modules.orchestrator_learned_v1 import (  # noqa: E40
     N_ACT, OBS_FIELDS, LearnedOrchestrator, default_arch,
 )
 from training.rigs.insim_rig_v1 import (  # noqa: E402
-    harvest, orchestrator_reward, rollout, use_module,
+    dwell_stats, harvest, orchestrator_reward, rollout, use_module,
 )
 from training import rl_core_v1 as rl  # noqa: E402
 
@@ -103,6 +103,7 @@ def evaluate(net, sim_len, eval_len, seeds=EVAL_SEEDS):
     D = T = 0
     causes = {}
     action_mix = np.zeros(N_ACT, dtype=float)
+    dwell_acc: list[dict] = []
     for seed in seeds:
         module = LearnedOrchestrator(net=net, rng=np.random.default_rng(seed))
         module.start_recording()
@@ -118,14 +119,19 @@ def evaluate(net, sim_len, eval_len, seeds=EVAL_SEEDS):
         for e in run.get("death_events", []):
             if e["t"] >= eb:
                 causes[e["cause"]] = causes.get(e["cause"], 0) + 1
+        # how long an intention survives, eval segment only, runs broken at each death
+        dwell_acc.append(dwell_stats(np.asarray(run["abstract_action_T"])[eb:],
+                                     np.asarray(run["death_T"])[eb:]))
 
     mix = action_mix / max(1.0, action_mix.sum())
+    dwell = {k: float(np.mean([d[k] for d in dwell_acc])) for k in dwell_acc[0]}
     return {
         "eval_deaths": int(D),
         "solveScore": (T / (T + D)) if (T + D) > 0 else float("nan"),
         "causes": causes,
         "mix_water": float(mix[0]), "mix_food": float(mix[1]),
         "mix_consume": float(mix[2]), "mix_explore": float(mix[3]),
+        **dwell,
     }
 
 
@@ -150,6 +156,8 @@ def train(
     eps_frac: float = 0.5,
     step_reward: float = 0.01,
     death_penalty: float = 1.0,
+    delib_cost: float = 0.0,
+    delib_exempt_consume: bool = True,
     eval_every: int = 10,
     save: bool = True,
 ):
@@ -159,7 +167,9 @@ def train(
     arch = default_arch(n_hidden=n_hidden, kind="mlp")
     net, target, optimiser = make_trainable(arch, lr)
     buffer = rl.ReplayBuffer(buffer_size, rng=rng)
-    reward_fn = orchestrator_reward(step_reward=step_reward, death_penalty=death_penalty)
+    reward_fn = orchestrator_reward(step_reward=step_reward, death_penalty=death_penalty,
+                                    delib_cost=delib_cost,
+                                    delib_exempt_consume=delib_exempt_consume)
 
     best = {"score": None, "state": None, "metrics": None, "round": None}
 
@@ -210,6 +220,7 @@ def train(
                 f"rd {rd+1:>4}  solve {m['solveScore']:.3f}  deaths {m['eval_deaths']:>4}  "
                 f"mix W/F/C/E {m['mix_water']:.2f}/{m['mix_food']:.2f}/"
                 f"{m['mix_consume']:.2f}/{m['mix_explore']:.2f}  "
+                f"dwell {m['dwell_mean_all']:.1f} (F {m['dwell_mean_GO_FOOD']:.1f})  "
                 f"eps {epsilon:.2f}  buf {len(buffer):>7}  "
                 f"{time.time()-t0:.0f}s{'  <- best' if kept else ''}"
             )
@@ -228,6 +239,11 @@ def train(
     print(f"      causes: {final['causes']}")
     print(f"      action mix  GO_WATER {final['mix_water']:.3f}  GO_FOOD {final['mix_food']:.3f}"
           f"  CONSUME {final['mix_consume']:.3f}  EXPLORE {final['mix_explore']:.3f}")
+    print(f"      dwell (mean ticks held)  GO_WATER {final['dwell_mean_GO_WATER']:.2f}"
+          f"  GO_FOOD {final['dwell_mean_GO_FOOD']:.2f}"
+          f"  CONSUME {final['dwell_mean_CONSUME']:.2f}"
+          f"  EXPLORE {final['dwell_mean_EXPLORE']:.2f}"
+          f"  |  all {final['dwell_mean_all']:.2f}   oracle GO_FOOD ~10")
     verdict = ("ABOVE oracle" if final["solveScore"] > ORACLE_BASELINE
                else "below oracle")
     print(f"      oracle {ORACLE_BASELINE:.4f} ({ORACLE_DEATHS} deaths) -> {verdict}")
@@ -250,9 +266,11 @@ def train(
         "updates_per_round": updates_per_round, "warmup": warmup,
         "cap_per_round": cap_per_round, "eps_start": eps_start, "eps_end": eps_end,
         "step_reward": step_reward, "death_penalty": death_penalty,
+        "delib_cost": delib_cost, "delib_exempt_consume": delib_exempt_consume,
         "eval_seeds": list(EVAL_SEEDS), "n_abstract_actions": N_ACT,
         "rig": "insim_rig_v1 (iterated batch off-policy)",
-        "reward": f"survival: +{step_reward}/tick alive, -{death_penalty} on death",
+        "reward": (f"survival: +{step_reward}/tick alive, -{death_penalty} on death"
+                   + (f", -{delib_cost} per abstract-action switch" if delib_cost else "")),
         "note": "4-way abstract head; exploration delegated to the explorer module",
         "oracle_baseline": ORACLE_BASELINE,
     }
@@ -277,11 +295,22 @@ def main():
     p.add_argument("--sim-len", type=int, default=7000)
     p.add_argument("--eval-len", type=int, default=5000)
     p.add_argument("--death-penalty", type=float, default=1.0)
+    p.add_argument("--delib", type=float, default=0.0,
+                   help="deliberation cost: penalty per abstract-action switch. 0.0 "
+                        "reproduces o0. Size it against the SWITCH RATE, not the step "
+                        "reward — an uncommitted policy switches ~0.5-0.7 times/tick, so "
+                        "0.02 already exceeds the whole survival signal (see d0). Usable "
+                        "range ~0.001-0.005. Watch `dwell`, not solveScore alone.")
+    p.add_argument("--delib-charge-consume", action="store_true",
+                   help="also charge switches into/out of CONSUME. Reproduces d0's "
+                        "degenerate collapse (78.9%% CONSUME, dwell 307, died of thirst "
+                        "on a food tile). Kept so the failure is re-runnable.")
     p.add_argument("--no-save", action="store_true")
     a = p.parse_args()
 
     train(tag=a.tag, seed=a.seed, rounds=a.rounds, sim_len=a.sim_len,
-          eval_len=a.eval_len, death_penalty=a.death_penalty, save=not a.no_save)
+          eval_len=a.eval_len, death_penalty=a.death_penalty, delib_cost=a.delib,
+          delib_exempt_consume=not a.delib_charge_consume, save=not a.no_save)
 
 
 if __name__ == "__main__":

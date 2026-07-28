@@ -101,7 +101,33 @@ class LearnedOrchestrator(Orchestrator, Recorder):
     """
 
     def __init__(self, rng=None, explorer: Explorer = None, weights: str = None,
-                 net=None, explore_eps: float = 0.0, **_ignored):
+                 net=None, explore_eps: float = 0.0,
+                 hold: int = 1, hold_natural: bool = True, hold_consume: bool = False,
+                 hold_explore: bool = True, **_ignored):
+        """
+        `hold` is the option-commitment horizon. hold=1 is the original behaviour —
+        re-decide every tick — and is the default, so nothing recorded before this
+        parameter existed changes.
+
+        WHY IT IS HERE. With hold=1 the module is a set of options with termination
+        beta=1 everywhere, and P4.2 measured the textbook consequence: median GO_FOOD run
+        length 1.0 against the oracle's 10.0. Options collapsed to primitive actions. The
+        oracle does not collapse because `OracleOrchestrator.self.target` is sticky — it
+        is running the same options with beta=0 until arrival.
+
+        `hold_natural` terminates an option on its task condition instead of waiting out
+        the counter: GO_* on arrival at the tile it named, EXPLORE the moment a memory
+        slot flips (the discovery terminal from P3.2). Every one of those conditions is a
+        function of fields already in OrchestratorObs, so this adds no information — it
+        changes when the module is ASKED, not what it can see. WHICH option to start is
+        still entirely learned; only when to stop is structural, which is the standard
+        options setup rather than a re-implementation of the oracle.
+
+        `hold_consume` is off by default. CONSUME is not a navigational intention, and
+        holding it would overfill: DRINK_AMOUNT=0.15 needs ~4 ticks to fill from ideal,
+        so a 15-tick hold spends 11 ticks past target. Left as a flag so the cost can be
+        measured rather than assumed.
+        """
         if net is None and weights is None:
             raise ValueError(
                 "LearnedOrchestrator needs weights='<tag>' or an explicit net= (trainer only)."
@@ -111,6 +137,17 @@ class LearnedOrchestrator(Orchestrator, Recorder):
         self.explore_eps = float(explore_eps)
         self.tag = weights
         self.n_calls = 0
+        self.hold = int(hold)
+        self.hold_natural = bool(hold_natural)
+        self.hold_consume = bool(hold_consume)
+        # hold_explore=False isolates GOAL commitment from uninterrupted exploring. Held
+        # EXPLORE is temporally-extended exploration, which 05-H2 already showed raises
+        # crossing supply on its own — so without this control the two are confounded.
+        self.hold_explore = bool(hold_explore)
+        self._held: int | None = None
+        self._ticks_left = 0
+        self._known_at_start = (False, False)
+        self.n_redecisions = 0
         self._init_recorder()
 
         if net is not None:
@@ -125,8 +162,39 @@ class LearnedOrchestrator(Orchestrator, Recorder):
                 )
 
     def reset(self) -> None:
+        self._held = None
+        self._ticks_left = 0
         if hasattr(self.explorer, "reset"):
             self.explorer.reset()
+
+    def _terminated(self, k: int, obs: OrchestratorObs) -> bool:
+        """Task-condition termination, all from fields already in the observation."""
+        if k == GO_WATER:
+            return obs.tile_water_lvl > 0
+        if k == GO_FOOD:
+            return obs.tile_food_lvl > 0
+        if k == EXPLORE:
+            # discovery terminal: a memory slot flipped since this option began
+            return (bool(obs.water_known), bool(obs.food_known)) != self._known_at_start
+        return False
+
+    def _continue(self, obs: OrchestratorObs, legal: np.ndarray) -> int | None:
+        """The still-running option, or None if it has terminated and we must re-decide."""
+        if self.hold <= 1 or self._held is None:
+            return None
+        k = self._held
+        if not legal[k]:
+            return None                                  # became illegal
+        if k == CONSUME and not self.hold_consume:
+            return None                                  # never held; see __init__
+        if k == EXPLORE and not self.hold_explore:
+            return None                                  # control arm; see __init__
+        if self._ticks_left <= 0:
+            return None                                  # horizon spent
+        if self.hold_natural and self._terminated(k, obs):
+            return None
+        self._ticks_left -= 1
+        return k
 
     def act(self, obs: OrchestratorObs) -> Action:
         global CALLS
@@ -136,14 +204,22 @@ class LearnedOrchestrator(Orchestrator, Recorder):
         x = encode_orchestrator_obs(obs)
         legal = abstract_mask(obs)
 
-        if self.explore_eps > 0.0 and self.rng.random() < self.explore_eps:
-            k = int(self.rng.choice(np.flatnonzero(legal)))
-        else:
-            with torch.no_grad():
-                q = self.net(torch.from_numpy(x))
-            q = q.masked_fill(~torch.from_numpy(legal), -1e9)
-            k = int(torch.argmax(q).item())
+        k = self._continue(obs, legal)
+        if k is None:
+            self.n_redecisions += 1
+            if self.explore_eps > 0.0 and self.rng.random() < self.explore_eps:
+                k = int(self.rng.choice(np.flatnonzero(legal)))
+            else:
+                with torch.no_grad():
+                    q = self.net(torch.from_numpy(x))
+                q = q.masked_fill(~torch.from_numpy(legal), -1e9)
+                k = int(torch.argmax(q).item())
+            self._held = k
+            self._ticks_left = self.hold - 1
+            self._known_at_start = (bool(obs.water_known), bool(obs.food_known))
 
+        # recorded every tick, held or not, so the training rig's record->tick join keeps
+        # one entry per call; the value recorded is the action actually emitted
         self.record(x, k)
 
         if k == GO_WATER:
@@ -176,6 +252,10 @@ class LearnedOrchestrator(Orchestrator, Recorder):
 
 
 def make_orchestrator_learned(rng=None, explorer=None, weights: str = None, net=None,
-                              explore_eps: float = 0.0, **kw) -> LearnedOrchestrator:
+                              explore_eps: float = 0.0, hold: int = 1,
+                              hold_natural: bool = True, hold_consume: bool = False,
+                              hold_explore: bool = True, **kw) -> LearnedOrchestrator:
     return LearnedOrchestrator(rng=rng, explorer=explorer, weights=weights, net=net,
-                               explore_eps=explore_eps, **kw)
+                               explore_eps=explore_eps, hold=hold,
+                               hold_natural=hold_natural, hold_consume=hold_consume,
+                               hold_explore=hold_explore, **kw)

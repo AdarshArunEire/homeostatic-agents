@@ -4,11 +4,29 @@ Reinforcement-learning agents that regulate internal state under spatial constra
 six-prototype investigation into **where value-based RL stops working** as the environment
 becomes less stationary and less forgiving.
 
+<p align="center">
+  <img src="prototypes/06_feudal/results/best_figures/agent_alive.gif" width="620">
+</p>
+
+<p align="center">
+  <sub><em>360 ticks of one life. Blue is water, green is food, and the pale halos show how far
+  each can be smelled — radius 3. The two bars are the drives the agent has to keep off the red
+  line, and the only way to do that is to walk back and forth between the resources. The grey
+  space between the halos is the <strong>dead band</strong>: the middle of the commute, where
+  neither resource can be detected. That gap is what the whole project turned out to be about.
+  <br><br>
+  Hand-written reactive stack (solveScore 0.48), seed 1, picked because it looks nice. An
+  illustration, not a result — the results are in <a href="RESULTS.md">RESULTS.md</a>. Regenerate
+  with <code>python figures/make_agent_gif_v1.py --seed 1</code>.</em></sub>
+</p>
+
+---
+
 **Results index:** [`RESULTS.md`](RESULTS.md) · **Hypothesis ledger:** [`BUILDNOTES.md`](BUILDNOTES.md) · **Re-run it:** [`REPRODUCE.md`](REPRODUCE.md) · **Latest work:** [`06_feudal`](prototypes/06_feudal)
 
 ---
 
-## In three sentences
+## The Main Idea
 
 An agent must keep hydration and satiation near their setpoints, but water and food are
 *places*, not buttons — so regulation becomes a spatial credit-assignment problem. On a fixed
@@ -19,7 +37,7 @@ exists.
 
 ---
 
-## The arc
+## The Arc
 
 **It worked.** Prototype 3b, fixed radius-5 map: **52%** of 100 seeds learn a clean water→food
 limit cycle, **38%** also survive it under a strict evaluation gate. Getting there required
@@ -38,8 +56,13 @@ pathfinder, consumer, explorer — and learns each separately. Navigation become
 Exploration turns out not to be learnable at all on its observation contract. And arbitration —
 the module that chooses between the two drives — *does* learn a coherent policy, then converges
 on the same **water-cult attractor** Prototype 3b identified three prototypes earlier. The
-pathology survives isolation, which means it belongs to the task rather than to end-to-end
-learning.
+pathology survives isolation. So it isn't something end-to-end learning caused — it's in the
+task.
+
+Watching it move, rather than reading its action shares, then showed the arbitration failure
+was really two failures. It cannot hold an intention for longer than a single tick, and it
+never finishes building its map. Forcing it to commit recovers a third of the gap; paying it
+to commit collapses it into standing still.
 
 <p>
   <img src="prototypes/06_feudal/results/best_figures/module_gap.png" width="640">
@@ -50,7 +73,7 @@ learning.
 
 ---
 
-## What stopped it working
+## What broke it
 
 The explorer is the module that must cross the dead band. Five methods were tried; none reached
 even the random-walk floor.
@@ -80,15 +103,15 @@ heuristic cannot reach.
 
 ## What did work: the pathfinder
 
-Worth stating alongside the negative result, because it is the same algorithm class.
+This belongs next to the negative result, because it is the same algorithm.
 
 The pathfinder was trained **entirely outside the simulation**, on bare hex geometry with no
 drives, decay or resources, using sparse arrival rewards and hindsight experience replay. Dropped
 into the full agent it was invoked 34,859 times for a **+0.000** change in survival, at
 **1.0000 optimality** across every operational distance band.
 
-It is not a copy of the reference implementation — agreement is only 0.56, because ties are
-broken differently. It is *independently optimal*, learned from arrival signals alone.
+It isn't a copy of the oracle — agreement is only 0.56, because the two break ties differently.
+It got there on its own, from arrival rewards.
 
 The claim this supports: the algorithm class that solved **0/40** end-to-end in Prototype 04
 recovers optimal navigation once decomposition hands it an observed goal. **The decomposition is
@@ -149,8 +172,8 @@ turn out to be the same line.
 
 ## Engineering
 
-Roughly 5,000 lines across six prototypes. The parts that took the most work are the parts that
-made the results trustworthy rather than the parts that produce them.
+Roughly 5,000 lines across six prototypes. Most of the work went into checking the results
+rather than producing them.
 
 **Module contract.** A frozen interface (`contract_v1.py`) defines four modules — orchestrator,
 pathfinder, consumer, explorer — each with an oracle implementation and a learned implementation
@@ -173,8 +196,8 @@ correctness, and the record-to-tick join the training rigs depend on. Every one 
 would otherwise be silent.
 
 **Calibration instruments.** Each module has a deliberately degraded twin (`noisy_oracle`) used to
-establish what a metric can actually detect *before* a learned module is trained against it. This is
-the piece most easily skipped and it changed two conclusions.
+establish what a metric can actually detect *before* a learned module is trained against it. It's
+easy to skip. Skipping it would have cost me two conclusions.
 
 ## Project map
 
@@ -233,8 +256,8 @@ against staleness under a non-stationary policy.
 The experimental apparatus is a deliberate part of this project, and several conclusions came
 from it rather than from any single run.
 
-- **Calibrate before training.** A null result is uninterpretable unless the metric has been shown
-  capable of producing a non-null one. Every module has a deliberately degraded control
+- **Calibrate before training.** A null result only means something if you have already shown the
+  metric can produce a non-null one. Every module has a deliberately degraded control
   (`noisy_oracle`) used to establish a detection floor *first*. The explorer's metric spans 0.362;
   the consumer's spans 0.044 — which is why the consumer's certification means less than it looks.
 - **A non-monotone metric cannot rank policies.** Under controlled degradation, `solveScore`
@@ -252,6 +275,55 @@ from it rather than from any single run.
 Predictions are written into [`BUILDNOTES.md`](BUILDNOTES.md) **before** each sweep runs, in
 Bet → Prediction → Result → Verdict form. The entries where the result contradicts the prediction
 are the load-bearing ones and are left exactly as written.
+
+---
+
+## Techniques used, and where they come from
+
+None of these are mine. The project is an investigation, not a method paper, and this table is
+here so a reader can tell at a glance what was borrowed and what was actually measured.
+
+| technique | used in | source |
+|---|---|---|
+| Tabular Q-learning | 00 | [Watkins & Dayan 1992](https://link.springer.com/article/10.1007/BF00992698) |
+| DQN, replay, target networks | 01 → 06 | [Mnih et al. 2015](https://www.nature.com/articles/nature14236) |
+| Double DQN | 03b, 04, 06 | [van Hasselt, Guez & Silver 2016](https://arxiv.org/abs/1509.06461) |
+| n-step returns | 03b → 06 | [Sutton & Barto 2018, ch. 7](http://incompleteideas.net/book/the-book-2nd.html) |
+| NoisyNets | 03b, 04, 06 | [Fortunato et al. 2018](https://arxiv.org/abs/1706.10295) |
+| Count-based novelty | 03b | [Bellemare et al. 2016](https://arxiv.org/abs/1606.01868), [Tang et al. 2017](https://arxiv.org/abs/1611.04717) |
+| Replay as a sampling distribution (the 520k collapse) | 03b | [Fedus et al. 2020](https://arxiv.org/abs/2007.06700) |
+| DRQN / recurrent value functions | 04, 05 | [Hausknecht & Stone 2015](https://arxiv.org/abs/1507.06527) |
+| Hindsight experience replay | 06 pathfinder | [Andrychowicz et al. 2017](https://arxiv.org/abs/1707.01495) |
+| Temporally-extended (εz-greedy) exploration | 05 H2 | [Dabney, Ostrovski & Barreto 2021](https://arxiv.org/abs/2006.01782) |
+| Self-imitation from a success archive | 05 H3 | [Oh et al. 2018](https://arxiv.org/abs/1806.05635) |
+| Go-Explore (tried, eyeballed, dropped) | 04 | [Ecoffet et al. 2021](https://www.nature.com/articles/s41586-020-03157-9) |
+| REINFORCE / policy gradient with a baseline | 06 explorer | [Williams 1992](https://link.springer.com/article/10.1007/BF00992696) |
+| Entropy regularisation | 06 explorer | [Mnih et al. 2016](https://arxiv.org/abs/1602.01783) |
+| Feudal decomposition | 06 | [Dayan & Hinton 1992](https://proceedings.neurips.cc/paper/1992/hash/d14220ee66aeec73c49038385428ec4c-Abstract.html), [Vezhnevets et al. 2017](https://arxiv.org/abs/1703.01161) |
+| Options / temporal abstraction | 06 | [Sutton, Precup & Singh 1999](https://doi.org/10.1016/S0004-3702(99)00052-1) |
+| Option collapse into primitive actions | 06 P4.2–P4.4 | [Bacon, Harb & Precup 2017](https://arxiv.org/abs/1609.05140) |
+| Deliberation cost on option switching | 06 P4.4 | [Harb, Bacon, Klissarov & Precup 2018](https://arxiv.org/abs/1709.04571) |
+| Learned termination — surveyed, not used | — | [Harutyunyan et al. 2019](http://proceedings.mlr.press/v89/harutyunyan19a/harutyunyan19a.pdf) |
+| Duration heads / action repetition — surveyed, not used | — | [Sharma et al. 2017](https://arxiv.org/abs/1702.06054), [Biedenkapp et al. 2021](https://arxiv.org/abs/2106.05262) |
+| Action persistence, policy inertia — surveyed, not used | — | [Metelli et al. 2020](https://arxiv.org/abs/2002.06836), [Chen et al. 2021](https://arxiv.org/abs/2103.02287) |
+| Stochastic optima for memoryless POMDP policies | 06 P3.2 | [Singh, Jaakkola & Jordan 1994](https://doi.org/10.1016/B978-1-55860-335-6.50042-8) |
+| Potential-based shaping (considered, rejected) | 06 pathfinder | [Ng, Harada & Russell 1999](https://people.eecs.berkeley.edu/~pabbeel/cs287-fa09/readings/NgHaradaRussell-shaping-ICML1999.pdf) |
+| Curriculum over task difficulty | 03b, 05, 06 | [Bengio et al. 2009](https://dl.acm.org/doi/10.1145/1553374.1553380) |
+| Wilson score intervals | everywhere | [Wilson 1927](https://doi.org/10.1080/01621459.1927.10502953) |
+
+Two things this project is downstream of but did not cite while building, which is a gap rather
+than a boast:
+
+- **Homeostatic RL** — [Keramati & Gutkin 2014](https://elifesciences.org/articles/04811) derive
+  a reward function from drive-reduction and prove when it coincides with utility maximisation.
+  That is the same setup as prototypes 00–02, arrived at independently and worse.
+- **Run-and-tumble chemotaxis** — the `smell_momentum` explorer is a rediscovery of bacterial
+  chemotaxis ([Berg & Brown 1972](https://www.nature.com/articles/239500a0)): persist while the
+  gradient improves, tumble when it drops.
+- **Option collapse** — the orchestrator's failure (P4.2–P4.4) is the documented pathology of
+  the Option-Critic line: options degenerating into primitive actions because the termination
+  objective switches on value noise. It was diagnosed here from a rendered trajectory rather
+  than from the literature, which is the cost of the missing reading list above.
 
 ---
 

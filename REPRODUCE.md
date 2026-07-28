@@ -105,15 +105,51 @@ carrying no discriminating signal looks like.
 
 ---
 
-## 6. Figures
+## 6. Orchestrator — arbitration, and what it could not hold
+
+```
+python tests/orchestrator_legality_v1.py --tag o0 --seeds 8            # ~2 min
+python tests/orchestrator_hold_sweep_v1.py --tag o0 --seeds 24         # ~10 min
+python tests/orchestrator_hold_sweep_v1.py --tag o0 --seeds 24 --eps 1.0
+```
+
+The first asks whether the published 7.6:1 water preference is a preference at all, given
+GO_FOOD is masked illegal unless `food_known`. Expect `food_known` at 32% against the
+oracle's 93%, and median GO_FOOD run length of 1.0 against 10.0.
+
+The second imposes an option horizon at inference on the same weights — no retraining — and
+expects an interior optimum near hold=15 that separates from hold=1. The third is the
+control that makes it mean anything: the same horizon on a uniformly random legal option,
+which scores **0.0000**. Persistence is not what helps; committing to *these* choices is.
+
+```
+python training/train_orchestrator_v1.py --tag d1 --seed 0 --delib 0.002   # ~5 min
+```
+
+Expect it to fail, and to fail toward CONSUME. Watch the `dwell` column rather than
+solveScore.
+
+## 7. Figures
 
 ```
 python figures/make_figures_v1.py
 ```
 
-Writes six PNGs to `results/best_figures/`. Measurements are transcribed constants at the top of
+Writes nine PNGs to `results/best_figures/`. Measurements are transcribed constants at the top of
 the script with their provenance noted, so a re-run of the sweeps above can be diffed against them
 rather than silently overwriting them.
+
+The README's header animation is separate, and is a demo rather than a measurement:
+
+```
+python figures/make_agent_gif_v1.py --scan 16     # which seeds make a good demo
+python figures/make_agent_gif_v1.py --seed 1      # render the one on the front page
+```
+
+It replays `coordinates_T` from a single eval life onto the hex grid, with the smell halos drawn
+so the dead band is visible. `--compare ladder` puts chemotaxis beside random, `--compare god`
+puts perfect navigation beside reactive, and `--compare learned` needs `pathfinder/s2b` and
+`drink/v1` present. The seed is chosen to look good; nothing here is evidence.
 
 ---
 
