@@ -37,26 +37,26 @@ This makes the task long-horizon enough that the agent cannot solve it by treati
 
 The agent regulates two internal variables:
 
-$$
+```math
 x_t = (h_t, s_t)
-$$
+```
 
 where:
 
-* $h_t$ is hydration
-* $s_t$ is satiation
+* $`h_t`$ is hydration
+* $`s_t`$ is satiation
 
 The target internal state is:
 
-$$
+```math
 x^\star = (1, 1)
-$$
+```
 
 Every tick, hydration and satiation decay. Death occurs when either variable falls to zero or below:
 
-$$
+```math
 \min(h_t, s_t) \le 0
-$$
+```
 
 The agent observes local state, not a full global map. Movement actions are masked at the edge of the hex world, so the Bellman target also has to respect valid actions.
 
@@ -69,8 +69,8 @@ The main substrate config was held fixed unless explicitly swept:
 | World radius        | 5                      |
 | Water               | `(-5, 0)`              |
 | Food                | `(0, 5)`               |
-| Discount            | $\gamma = 0.99$        |
-| Return length       | $n = 10$               |
+| Discount            | $`\gamma = 0.99`$        |
+| Return length       | $`n = 10`$               |
 | Replay batch        | 512                    |
 | Replay warmup       | 500                    |
 | Target update       | 500                    |
@@ -78,21 +78,21 @@ The main substrate config was held fixed unless explicitly swept:
 | Training length     | 500k ticks             |
 | Greedy evaluation   | 20k ticks              |
 | Comfort surface     | comfort-v3             |
-| Overfill weight     | $\text{over}_w = 0.02$ |
-| Underfill weight    | $\text{under}_w = 0.5$ |
-| Death penalty scale | $k = 0.5$              |
+| Overfill weight     | $`\text{over}_w = 0.02`$ |
+| Underfill weight    | $`\text{under}_w = 0.5`$ |
+| Death penalty scale | $`k = 0.5`$              |
 
 ## Comfort-v3 surface
 
 The original comfort surface treated every deviation from the ideal point as the same kind of error:
 
-$$
+```math
 d^2 = (h - h^\star)^2 + (s - s^\star)^2
-$$
+```
 
-$$
+```math
 C(h,s) = 2e^{-kd^2} - 1
-$$
+```
 
 That was too blunt for a spatial commute.
 
@@ -106,25 +106,25 @@ The comfort surface first splits each internal variable into below-target and ab
 
 For hydration:
 
-$$
-h_{\text{deficit}} = (h^\star - h)*+,
+```math
+h_{\text{deficit}} = (h^\star - h)_+,
 \qquad
-h*{\text{surplus}} = (h - h^\star)_+
-$$
+h_{\text{surplus}} = (h - h^\star)_+
+```
 
 For satiation:
 
-$$
-s_{\text{deficit}} = (s^\star - s)*+,
+```math
+s_{\text{deficit}} = (s^\star - s)_+,
 \qquad
-s*{\text{surplus}} = (s - s^\star)_+
-$$
+s_{\text{surplus}} = (s - s^\star)_+
+```
 
 where:
 
-$$
+```math
 (a)_+ = \max(a, 0)
-$$
+```
 
 This gives the reward surface two separate error channels: one for dangerous deficit, and one for temporary surplus used as a travel buffer.
 
@@ -132,68 +132,68 @@ This gives the reward surface two separate error channels: one for dangerous def
 
 The deficit distance is:
 
-$$
+```math
 D_{\text{deficit}} =
-(h^\star - h)*+^2 + (s^\star - s)*+^2
-$$
+(h^\star - h)_+^2 + (s^\star - s)_+^2
+```
 
 The surplus distance is:
 
-$$
+```math
 D_{\text{surplus}} =
-(h - h^\star)*+^2 + (s - s^\star)*+^2
-$$
+(h - h^\star)_+^2 + (s - s^\star)_+^2
+```
 
 Then the total squared distance is:
 
-$$
+```math
 d^2 =
 w_{\text{deficit}}D_{\text{deficit}}
 +
 w_{\text{surplus}}D_{\text{surplus}}
-$$
+```
 
 In this prototype, underfill is still punished more than surplus:
 
-$$
+```math
 w_{\text{deficit}} > w_{\text{surplus}}
-$$
+```
 
-The purpose is not to make surplus free. It is to make a temporary travel buffer affordable. Extreme surplus still increases $d^2$ and lowers comfort.
+The purpose is not to make surplus free. It is to make a temporary travel buffer affordable. Extreme surplus still increases $`d^2`$ and lowers comfort.
 
 ### Step 3: map distance back to comfort
 
 The final comfort is:
 
-$$
+```math
 C(h,s) = 2e^{-3d^2} - 1
-$$
+```
 
 This maps internal state onto approximately:
 
-$$
+```math
 C(h,s) \in [-1, 1]
-$$
+```
 
 At the ideal point:
 
-$$
+```math
 h = h^\star,\qquad s = s^\star
-$$
+```
 
 so:
 
-$$
+```math
 D_{\text{deficit}} = 0,\qquad D_{\text{surplus}} = 0,\qquad d^2 = 0
-$$
+```
 
 and therefore:
 
-$$
+```math
 C(h,s) = 2e^0 - 1 = 1
-$$
+```
 
-As the weighted distance grows, $e^{-3d^2}$ shrinks toward zero, so comfort falls toward $-1$.
+As the weighted distance grows, $`e^{-3d^2}`$ shrinks toward zero, so comfort falls toward $`-1`$.
 
 The geometric change is the important part: the comfort basin is no longer symmetric around the ideal point. The low side remains dangerous; the high side allows strategic buffer.
 
@@ -201,29 +201,29 @@ The geometric change is the important part: the comfort basin is no longer symme
 
 Death is not just another low-comfort tick. It terminates the current survival attempt and causes a respawn.
 
-A fixed death penalty becomes hard to compare across different $\gamma$ values. The discounted value of a constant future penalty has scale:
+A fixed death penalty becomes hard to compare across different $`\gamma`$ values. The discounted value of a constant future penalty has scale:
 
-$$
+```math
 1 + \gamma + \gamma^2 + \cdots = \frac{1}{1 - \gamma}
-$$
+```
 
 So a death penalty can be scaled as:
 
-$$
+```math
 D_{\text{death}} = \frac{k}{1 - \gamma}
-$$
+```
 
 This makes the penalty comparable to a discounted stream of bad future outcomes. With:
 
-$$
+```math
 \gamma = 0.99,\qquad k = 0.5
-$$
+```
 
 the death penalty scale is:
 
-$$
+```math
 D_{\text{death}} = \frac{0.5}{1 - 0.99} = 50
-$$
+```
 
 This does not solve the task by itself. It prevents a death from being treated like a small local mistake when the real consequence is a broken trajectory.
 
@@ -231,36 +231,36 @@ This does not solve the task by itself. It prevents a death from being treated l
 
 The DQN estimates an action-value function:
 
-$$
+```math
 Q_\theta(s_t, a_t)
-$$
+```
 
 For ordinary one-step Q-learning, the target is:
 
-$$
+```math
 y_t =
 r_t
 +
 \gamma \max_{a'} Q_{\theta^-}(s_{t+1}, a')
-$$
+```
 
-where $\theta^-$ is the target network.
+where $`\theta^-`$ is the target network.
 
 But in the hex world, not every movement action is valid from every tile. Invalid actions must not appear inside the max. So the target becomes:
 
-$$
+```math
 y_t =
 r_t
 +
-\gamma \max_{a' \in \mathcal{A}*{\text{valid}}(s*{t+1})}
+\gamma \max_{a' \in \mathcal{A}_{\text{valid}}(s_{t+1})}
 Q_{\theta^-}(s_{t+1}, a')
-$$
+```
 
 If the transition ends in death, there is no bootstrap term:
 
-$$
+```math
 y_t = r_t
-$$
+```
 
 This prevents the model from assigning future value after terminal states.
 
@@ -268,9 +268,9 @@ This prevents the model from assigning future value after terminal states.
 
 One-step targets are often too local for this task. Food may be valuable, but the value is delayed by a long walk. So Prototype 3b uses n-step returns.
 
-For $n = 10$, the return is:
+For $`n = 10`$, the return is:
 
-$$
+```math
 G_t^{(10)} =
 r_t
 +
@@ -283,29 +283,29 @@ r_t
 \gamma^9 r_{t+9}
 +
 \gamma^{10}
-\max_{a' \in \mathcal{A}*{\text{valid}}(s*{t+10})}
+\max_{a' \in \mathcal{A}_{\text{valid}}(s_{t+10})}
 Q_{\theta^-}(s_{t+10}, a')
-$$
+```
 
 More generally:
 
-$$
+```math
 G_t^{(n)} =
 \sum_{i=0}^{n-1} \gamma^i r_{t+i}
 +
 \gamma^n
-\max_{a' \in \mathcal{A}*{\text{valid}}(s*{t+n})}
+\max_{a' \in \mathcal{A}_{\text{valid}}(s_{t+n})}
 Q_{\theta^-}(s_{t+n}, a')
-$$
+```
 
-If death occurs before the $n$th step, the return is truncated and there is no bootstrap term:
+If death occurs before the $`n`$th step, the return is truncated and there is no bootstrap term:
 
-$$
+```math
 G_t^{(\tau)} =
 \sum_{i=0}^{\tau} \gamma^i r_{t+i}
-$$
+```
 
-where $\tau$ is the terminal step.
+where $`\tau`$ is the terminal step.
 
 A 10-step journey needs value to travel across several actions, not just one. Longer n-step returns helped propagate value, but if the replay buffer does not contain useful water→food trajectories, there is still nothing good to propagate.
 
@@ -338,15 +338,15 @@ So the benchmark has to look at seed-level behaviour, not just average comfort.
 
 The loose solve gate is:
 
-$$
+```math
 \text{mean comfort} \ge 0.7
-$$
+```
 
 and:
 
-$$
+```math
 \text{food fraction during eval} \ge 0.01
-$$
+```
 
 The food fraction condition prevents a high-comfort water-camper from being counted as solved. A policy cannot fake time on the food tile without actually travelling there.
 
@@ -354,17 +354,17 @@ The food fraction condition prevents a high-comfort water-camper from being coun
 
 The stricter gate adds path and death constraints:
 
-$$
+```math
 \text{path efficiency} \ge 0.9
-$$
+```
 
-$$
+```math
 \text{perfectish trip rate} > 0
-$$
+```
 
-$$
+```math
 \text{eval deaths} \le k
-$$
+```
 
 This separates route discovery from reliable execution. Some seeds find the water→food cycle, but still die enough during greedy evaluation that they are not yet robust controllers.
 
@@ -388,13 +388,13 @@ Sweeping the functional form and under/over weights changed the reported comfort
 
 The wider grid:
 
-$$
+```math
 \text{under} \in {1.0, 1.5, 2.0}
-$$
+```
 
-$$
+```math
 \text{over} \in {0.1, 0.2, 0.3}
-$$
+```
 
 spanned median comfort from about −0.40 to −0.03, but still produced 0% solved.
 
@@ -406,7 +406,7 @@ After the gross reward geometry was fixed in Prototype 3, the remaining bimodali
 
 The next hypothesis was that the food reward was too far away.
 
-A one-way trip is roughly 10 moves, so the agent has to value a delayed correction. Double DQN, longer n-step returns, larger $\gamma$, and tuned death penalties should help with that.
+A one-way trip is roughly 10 moves, so the agent has to value a delayed correction. Double DQN, longer n-step returns, larger $`\gamma`$, and tuned death penalties should help with that.
 
 They did change training.
 
@@ -445,9 +445,9 @@ The curriculum improved early reachability, but it also let the agent form local
 
 The rough result was:
 
-$$
+```math
 6/10 \rightarrow 1/10
-$$
+```
 
 So coordinate curriculum was abandoned.
 
@@ -467,63 +467,63 @@ Prototype 3b uses NoisyNet layers instead of ε-greedy exploration.
 
 A noisy linear layer replaces fixed weights with sampled weights:
 
-$$
+```math
 W = \mu_W + \sigma_W \odot \epsilon_W
-$$
+```
 
-$$
+```math
 b = \mu_b + \sigma_b \odot \epsilon_b
-$$
+```
 
 The forward pass becomes:
 
-$$
+```math
 y = Wx + b
-$$
+```
 
 so the Q-values depend on sampled parameter noise during training.
 
 For factorized Gaussian noise, the weight noise can be written as an outer product:
 
-$$
+```math
 \epsilon_W = f(\epsilon_{\text{out}})f(\epsilon_{\text{in}})^\top
-$$
+```
 
 where:
 
-$$
+```math
 f(z) = \operatorname{sign}(z)\sqrt{|z|}
-$$
+```
 
-This makes the exploration state-dependent. The policy does not just take random actions with probability $\epsilon$. Instead, the value function itself is perturbed, so the same state can produce coherent exploratory preferences.
+This makes the exploration state-dependent. The policy does not just take random actions with probability $`\epsilon`$. Instead, the value function itself is perturbed, so the same state can produce coherent exploratory preferences.
 
-During evaluation, the network switches to deterministic $\mu$ weights. That means the greedy-eval result is not being propped up by exploration noise.
+During evaluation, the network switches to deterministic $`\mu`$ weights. That means the greedy-eval result is not being propped up by exploration noise.
 
 The best initial noise scale was:
 
-$$
+```math
 \sigma_0 = 0.5
-$$
+```
 
 Larger values such as 0.8 and 1.1 degraded performance.
 
-A side-result: logged $\sigma$ rose over training rather than collapsing to zero. That dissolved an earlier hypothesis that novelty was mainly rescuing a collapsing NoisyNet. The target kept changing under drive cycles, local reward structure, and replay distribution, so the network kept demanding noise.
+A side-result: logged $`\sigma`$ rose over training rather than collapsing to zero. That dissolved an earlier hypothesis that novelty was mainly rescuing a collapsing NoisyNet. The target kept changing under drive cycles, local reward structure, and replay distribution, so the network kept demanding noise.
 
 ### Count-based novelty
 
 Count-based novelty adds a bonus for visiting less-used tiles.
 
-Let $N_t(q)$ be the lifetime visit count for tile $q$ during training. The novelty bonus is:
+Let $`N_t(q)`$ be the lifetime visit count for tile $`q`$ during training. The novelty bonus is:
 
-$$
+```math
 r_{\text{novelty}}(q_t) = \frac{\beta}{\sqrt{N_t(q_t)}}
-$$
+```
 
 The reward used for learning becomes:
 
-$$
-r'*t = r_t + r*{\text{novelty}}(q_t)
-$$
+```math
+r'_t = r_t + r_{\text{novelty}}(q_t)
+```
 
 with the novelty term gated to the training window.
 
@@ -531,15 +531,15 @@ The square root makes the bonus decay sublinearly. A new tile gets a large bonus
 
 In this prototype:
 
-$$
+```math
 \beta = 0.1
-$$
+```
 
 worked better than:
 
-$$
+```math
 \beta = 0.05
-$$
+```
 
 Novelty alone did not solve the task. On vanilla DQN, the bonus was often spent reinforcing the comfortable water region. With NoisyNets, the same bonus helped move the replay distribution into the food corridor.
 
@@ -604,11 +604,11 @@ The 50k buffer is not “the buffer that remembers everything.” It is a tradeo
 The best current configuration is:
 
 * Noisy DQN
-* count-based novelty with $\beta = 0.1$
+* count-based novelty with $`\beta = 0.1`$
 * 50k replay buffer
 * 10-step returns
 * comfort-v3 surface
-* $\gamma = 0.99$
+* $`\gamma = 0.99`$
 * 100 seeds
 
 Across 100 seeds:
@@ -635,31 +635,31 @@ So the same policy family can learn the route before it learns to execute that r
 
 For a binomial estimate with:
 
-$$
+```math
 n = 100
-$$
+```
 
 and:
 
-$$
+```math
 k = 38
-$$
+```
 
 the observed proportion is:
 
-$$
+```math
 \hat{p} = \frac{38}{100} = 0.38
-$$
+```
 
 The 95% Wilson interval uses:
 
-$$
+```math
 z = 1.96
-$$
+```
 
 and:
 
-$$
+```math
 \frac{
 \hat{p} + \frac{z^2}{2n}
 \pm
@@ -672,19 +672,19 @@ z\sqrt{
 {
 1 + \frac{z^2}{n}
 }
-$$
+```
 
 For 38/100, this gives approximately:
 
-$$
+```math
 [0.291,\ 0.478]
-$$
+```
 
 or:
 
-$$
+```math
 [29.1%,\ 47.8%]
-$$
+```
 
 That is the interval reported for the stricter survival-aware rate.
 

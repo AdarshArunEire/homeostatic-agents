@@ -121,27 +121,31 @@ the finding**, not the pathfinder.
 
 The dead band has a width, and it is not linear in the sensing radius.
 
-For commute length $L$ and smell radius $r$, the agent is guided while within $r$ of water (an
-anti-gradient — it knows where it came from) and within $r$ of food. The scentless middle is
+For commute length $`L`$ and smell radius $`r`$, the agent is guided while within $`r`$ of water (an
+anti-gradient — it knows where it came from) and within $`r`$ of food. The scentless middle is
 
-$$d(r) = \max(0,\; L - 2r)$$
+```math
+d(r) = \max(0,\; L - 2r)
+```
 
-Radius is subtracted from **both ends**, so $+2$ on $r$ removes $4$ from $d$. At band $(9,11)$:
-$r=3$ gives $d \in \{3,4,5\}$; $r=5$ gives $d \in \{0,0,1\}$.
+Radius is subtracted from **both ends**, so $`+2`$ on $`r`$ removes $`4`$ from $`d`$. At band $`(9,11)`$:
+$`r=3`$ gives $`d \in \{3,4,5\}`$; $`r=5`$ gives $`d \in \{0,0,1\}`$.
 
-Two further effects compound. Detection area on a hex grid is $N(r) = 1 + 3r(r+1)$, quadratic in
-$r$, and mean hitting time for a random walk scales as domain area over target area. And in the
-blind region the walk is unbiased, so expected crossing time for a gap of width $d$ scales as
-$d^2$, not $d$. Together:
+Two further effects compound. Detection area on a hex grid is $`N(r) = 1 + 3r(r+1)`$, quadratic in
+$`r`$, and mean hitting time for a random walk scales as domain area over target area. And in the
+blind region the walk is unbiased, so expected crossing time for a gap of width $`d`$ scales as
+$`d^2`$, not $`d`$. Together:
 
-$$\mathcal{D} \;\propto\; \frac{(L-2r)^2}{r^2}$$
+```math
+\mathcal{D} \;\propto\; \frac{(L-2r)^2}{r^2}
+```
 
-At $L=11$ that is $25/9 \approx 2.78$ for $r=3$ against $1/25 = 0.04$ for $r=5$ — a factor of ~70.
-At $L \le 10$ with $r=5$ the numerator is zero.
+At $`L=11`$ that is $`25/9 \approx 2.78`$ for $`r=3`$ against $`1/25 = 0.04`$ for $`r=5`$ — a factor of ~70.
+At $`L \le 10`$ with $`r=5`$ the numerator is zero.
 
-**So $r=5$ does not make the task easier; it removes the task.** The phenomenon is parameterised by
-$L - 2r$, not by $r$, which means smell 5 with band $(13,15)$ would be the *same* problem. The
-project holds $r=3$ deliberately, and the cost of doing so is itself diagnostic: smell 3 and smell 5
+**So $`r=5`$ does not make the task easier; it removes the task.** The phenomenon is parameterised by
+$`L - 2r`$, not by $`r`$, which means smell 5 with band $`(13,15)`$ would be the *same* problem. The
+project holds $`r=3`$ deliberately, and the cost of doing so is itself diagnostic: smell 3 and smell 5
 tie at 0.86 on an evaluation where water is handed over, and diverge to 0.48 vs 0.71 only when
 water must be found from cold.
 
@@ -158,7 +162,7 @@ The word has a precise meaning here, and the distinction drove most of the desig
 | oracle with pre-populated coordinates | cheating (except as a plumbing smoke test) | the agent never earned the knowledge; the privilege does not survive the oracle→learned swap |
 | a learned module importing the true physics | **cheating** | it reads the consume dynamics instead of estimating them. `world_v1` is the greppable boundary and a probe enforces it |
 | stratified replay sampling | legal | changes which existing transitions the optimiser sees. No new information enters |
-| raising the sensory radius | legal but **changes the problem** | see above — it deletes the dead band rather than easing it, so results are not comparable across $r$ |
+| raising the sensory radius | legal but **changes the problem** | see above — it deletes the dead band rather than easing it, so results are not comparable across $`r`$ |
 
 The operational test: *what privilege evaporates when an oracle is replaced by a learned module?*
 Anything that would be impossible to replace without handing the agent privileged information fails.

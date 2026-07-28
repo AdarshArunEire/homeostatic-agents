@@ -24,7 +24,7 @@ The four hypotheses, in order:
 
 ## What changed from 3b
 
-The substrate (comfort-v3 surface, death-penalty scaling $k/(1-\gamma)$, masked Bellman target, n-step returns, NoisyNet exploration, count-based novelty, annulus respawn) is carried over unchanged from 03b. Only the world changes.
+The substrate (comfort-v3 surface, death-penalty scaling $`k/(1-\gamma)`$, masked Bellman target, n-step returns, NoisyNet exploration, count-based novelty, annulus respawn) is carried over unchanged from 03b. Only the world changes.
 
 | | 3b | 04 |
 |---|---|---|
@@ -33,19 +33,19 @@ The substrate (comfort-v3 surface, death-penalty scaling $k/(1-\gamma)$, masked 
 | commute | fixed ~10-move trip | held at 9–11 by construction |
 | evaluation | one route | split across map seeds — memorising one route cannot count |
 
-The carried configuration is the 3b headliner: Noisy DQN + count-based novelty ($\beta = 0.1$) + 50k replay + 10-step returns + $\gamma = 0.99$.
+The carried configuration is the 3b headliner: Noisy DQN + count-based novelty ($`\beta = 0.1`$) + 50k replay + 10-step returns + $`\gamma = 0.99`$.
 
 ### Solve gates (carried from 3b)
 
 The strict, survival-aware gate is used throughout:
 
-$$
+```math
 \text{path efficiency} \ge 0.9
 \quad\wedge\quad
 \text{perfectish trip rate} > 0
 \quad\wedge\quad
 \text{eval deaths} \le k
-$$
+```
 
 `clean-solve` (crossed the valley at least once, no death cap) is reported alongside as the looser companion — the gap between clean-solve and solved is the survival cost of the crossing. Per-seed solve-rate is the metric, not mean comfort: the camp-vs-cycle bimodality swamps any aggregate.
 
@@ -147,7 +147,7 @@ So more *uniform* sampling is not the lever. What helps is letting a seed that s
 
 ## Stopping point and Proto 05
 
-Across every config tried, the strict solve-rate is 0 and the bimodal camp-vs-limit-cycle failure is intact. The binding constraint is directed-exploration scarcity, and no credit-assignment intervention (n-step, DDQN, death penalty, $\gamma$, memory) has moved it. Further tuning on the fixed-map framing has no upside.
+Across every config tried, the strict solve-rate is 0 and the bimodal camp-vs-limit-cycle failure is intact. The binding constraint is directed-exploration scarcity, and no credit-assignment intervention (n-step, DDQN, death penalty, $`\gamma`$, memory) has moved it. Further tuning on the fixed-map framing has no upside.
 
 The reframe: stop optimising for a config robust across inits, and change the success criterion to **one weight set that generalises across maps** — each sim instance a freshly resampled world, evaluated on held-out maps with frozen weights. This is the route-vs-rule thesis stated directly: map resampling makes route-memorisation impossible by construction (it kills the H1 boundary/route crutch) and forces the policy onto the invariant — cross the band by sense.
 
